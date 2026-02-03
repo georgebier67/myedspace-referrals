@@ -70,14 +70,14 @@ function LoginForm({ onLogin }: { onLogin: () => void }) {
   return (
     <div className="min-h-screen flex items-center justify-center p-4">
       <div className="card p-8 max-w-md w-full">
-        <h1 className="text-2xl font-bold text-gray-900 mb-6 text-center">
+        <h1 className="text-2xl font-black text-[#101626] mb-6 text-center uppercase">
           Admin Login
         </h1>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label
               htmlFor="password"
-              className="block text-sm font-medium text-gray-700 mb-1"
+              className="block text-sm font-bold text-[#101626] mb-1 uppercase"
             >
               Password
             </label>
@@ -93,8 +93,8 @@ function LoginForm({ onLogin }: { onLogin: () => void }) {
           </div>
 
           {error && (
-            <div className="pixel-shake bg-red-50 border-2 border-red-200 rounded-lg p-3">
-              <p className="text-sm text-red-600">{error}</p>
+            <div className="pixel-shake bg-[#ff3333]/10 border-3 border-[#ff3333] p-3">
+              <p className="text-sm text-[#ff3333] font-bold">{error}</p>
             </div>
           )}
 
@@ -122,24 +122,24 @@ function StatCard({
 }) {
   return (
     <div className="card p-4">
-      <p className="text-sm text-gray-500">{label}</p>
-      <p className={`text-2xl font-bold ${color}`}>{value}</p>
+      <p className="text-sm text-[#101626] font-bold uppercase">{label}</p>
+      <p className={`text-2xl font-black ${color}`}>{value}</p>
     </div>
   );
 }
 
 function StatusBadge({ status }: { status: string }) {
   const colors: Record<string, string> = {
-    pending: 'bg-yellow-100 text-yellow-800',
-    purchased: 'bg-blue-100 text-blue-800',
-    qualified: 'bg-green-100 text-green-800',
-    rewarded: 'bg-purple-100 text-purple-800',
-    disqualified: 'bg-red-100 text-red-800',
+    pending: 'bg-yellow-300 text-[#101626] border-[#101626]',
+    purchased: 'bg-[#a3e1f0] text-[#101626] border-[#101626]',
+    qualified: 'bg-[#b1db00] text-[#101626] border-[#101626]',
+    rewarded: 'bg-[#3533ff] text-white border-[#101626]',
+    disqualified: 'bg-[#ff3333] text-white border-[#101626]',
   };
 
   return (
     <span
-      className={`px-2 py-1 rounded-full text-xs font-medium ${colors[status] || 'bg-gray-100 text-gray-800'}`}
+      className={`px-2 py-1 text-xs font-bold uppercase border-2 ${colors[status] || 'bg-gray-100 text-[#101626] border-[#101626]'}`}
     >
       {status}
     </span>
@@ -284,10 +284,10 @@ export default function AdminDashboard() {
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">
+            <h1 className="text-2xl font-black text-[#101626] uppercase">
               Referral Dashboard
             </h1>
-            <p className="text-gray-600">
+            <p className="text-[#101626]">
               Manage and track all referrals
             </p>
           </div>
@@ -388,60 +388,60 @@ export default function AdminDashboard() {
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
-                <tr className="bg-gray-50 border-b border-gray-200">
-                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">
+                <tr className="bg-[#101626] border-b-3 border-[#101626]">
+                  <th className="px-4 py-3 text-left text-xs font-bold text-white uppercase">
                     Referrer
                   </th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">
+                  <th className="px-4 py-3 text-left text-xs font-bold text-white uppercase">
                     Friend
                   </th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">
+                  <th className="px-4 py-3 text-left text-xs font-bold text-white uppercase">
                     Status
                   </th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">
+                  <th className="px-4 py-3 text-left text-xs font-bold text-white uppercase">
                     Signup Date
                   </th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">
+                  <th className="px-4 py-3 text-left text-xs font-bold text-white uppercase">
                     Eligible In
                   </th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">
+                  <th className="px-4 py-3 text-left text-xs font-bold text-white uppercase">
                     Actions
                   </th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-200">
+              <tbody className="divide-y-2 divide-[#101626]">
                 {filteredReferrals.length === 0 ? (
                   <tr>
                     <td
                       colSpan={6}
-                      className="px-4 py-12 text-center text-gray-500"
+                      className="px-4 py-12 text-center text-[#101626] font-bold"
                     >
                       No referrals found
                     </td>
                   </tr>
                 ) : (
                   filteredReferrals.map((referral) => (
-                    <tr key={referral.id} className="hover:bg-gray-50">
+                    <tr key={referral.id} className="hover:bg-[#a3e1f0]/20">
                       <td className="px-4 py-3">
                         <div>
-                          <p className="font-medium text-gray-900">
+                          <p className="font-bold text-[#101626]">
                             {referral.referrer_name}
                           </p>
-                          <p className="text-sm text-gray-500">
+                          <p className="text-sm text-[#101626]">
                             {referral.referrer_email}
                           </p>
                         </div>
                       </td>
                       <td className="px-4 py-3">
                         <div>
-                          <p className="font-medium text-gray-900">
+                          <p className="font-bold text-[#101626]">
                             {referral.referred_name}
                           </p>
-                          <p className="text-sm text-gray-500">
+                          <p className="text-sm text-[#101626]">
                             {referral.referred_email}
                           </p>
                           {referral.referred_phone && (
-                            <p className="text-sm text-gray-400">
+                            <p className="text-sm text-[#101626]/60">
                               {referral.referred_phone}
                             </p>
                           )}
@@ -450,10 +450,10 @@ export default function AdminDashboard() {
                       <td className="px-4 py-3">
                         <StatusBadge status={referral.status} />
                       </td>
-                      <td className="px-4 py-3 text-sm text-gray-600">
+                      <td className="px-4 py-3 text-sm text-[#101626]">
                         {formatDate(referral.signup_date)}
                       </td>
-                      <td className="px-4 py-3 text-sm text-gray-600">
+                      <td className="px-4 py-3 text-sm text-[#101626]">
                         {referral.status === 'purchased'
                           ? daysUntilEligible(referral.reward_eligible_date)
                           : '-'}
@@ -469,7 +469,7 @@ export default function AdminDashboard() {
                                   onClick={() =>
                                     handleAction(referral.id, 'mark_purchased')
                                   }
-                                  className="text-xs px-2 py-1 bg-blue-100 text-blue-700 rounded hover:bg-blue-200"
+                                  className="text-xs px-2 py-1 bg-[#a3e1f0] text-[#101626] border-2 border-[#101626] font-bold uppercase hover:translate-x-[-1px] hover:translate-y-[-1px] hover:shadow-[2px_2px_0_#101626]"
                                 >
                                   Mark Purchased
                                 </button>
@@ -479,7 +479,7 @@ export default function AdminDashboard() {
                                   onClick={() =>
                                     handleAction(referral.id, 'mark_qualified')
                                   }
-                                  className="text-xs px-2 py-1 bg-green-100 text-green-700 rounded hover:bg-green-200"
+                                  className="text-xs px-2 py-1 bg-[#b1db00] text-[#101626] border-2 border-[#101626] font-bold uppercase hover:translate-x-[-1px] hover:translate-y-[-1px] hover:shadow-[2px_2px_0_#101626]"
                                 >
                                   Mark Qualified
                                 </button>
@@ -489,7 +489,7 @@ export default function AdminDashboard() {
                                   onClick={() =>
                                     handleAction(referral.id, 'mark_rewarded')
                                   }
-                                  className="text-xs px-2 py-1 bg-purple-100 text-purple-700 rounded hover:bg-purple-200"
+                                  className="text-xs px-2 py-1 bg-[#3533ff] text-white border-2 border-[#101626] font-bold uppercase hover:translate-x-[-1px] hover:translate-y-[-1px] hover:shadow-[2px_2px_0_#101626]"
                                 >
                                   Mark Rewarded
                                 </button>
@@ -502,7 +502,7 @@ export default function AdminDashboard() {
                                       handleAction(referral.id, 'disqualify', notes);
                                     }
                                   }}
-                                  className="text-xs px-2 py-1 bg-red-100 text-red-700 rounded hover:bg-red-200"
+                                  className="text-xs px-2 py-1 bg-[#ff3333] text-white border-2 border-[#101626] font-bold uppercase hover:translate-x-[-1px] hover:translate-y-[-1px] hover:shadow-[2px_2px_0_#101626]"
                                 >
                                   Disqualify
                                 </button>
@@ -521,7 +521,7 @@ export default function AdminDashboard() {
 
         {/* Referrers Section */}
         <div className="mt-8">
-          <h2 className="text-xl font-bold text-gray-900 mb-4">
+          <h2 className="text-xl font-black text-[#101626] mb-4 uppercase">
             Registered Referrers
           </h2>
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -529,17 +529,17 @@ export default function AdminDashboard() {
               <div key={referrer.email} className="card p-4">
                 <div className="flex justify-between items-start mb-2">
                   <div>
-                    <p className="font-medium text-gray-900">{referrer.name}</p>
-                    <p className="text-sm text-gray-500">{referrer.email}</p>
+                    <p className="font-bold text-[#101626]">{referrer.name}</p>
+                    <p className="text-sm text-[#101626]">{referrer.email}</p>
                   </div>
-                  <span className="bg-primary/10 text-primary px-2 py-1 rounded text-sm font-medium">
-                    {referrer.total_referrals} referrals
+                  <span className="bg-[#3533ff] text-white px-2 py-1 text-sm font-bold border-2 border-[#101626]">
+                    {referrer.total_referrals}
                   </span>
                 </div>
-                <p className="text-xs text-gray-400 font-mono truncate">
+                <p className="text-xs text-[#101626]/60 font-mono truncate">
                   {referrer.referral_code}
                 </p>
-                <p className="text-xs text-gray-400 mt-1">
+                <p className="text-xs text-[#101626]/60 mt-1">
                   Joined {formatDate(referrer.created_at)}
                 </p>
                 <button
@@ -547,14 +547,14 @@ export default function AdminDashboard() {
                     setSelectedReferrer(referrer.email);
                     window.scrollTo({ top: 0, behavior: 'smooth' });
                   }}
-                  className="mt-2 text-sm text-primary hover:underline"
+                  className="mt-2 text-sm text-[#3533ff] font-bold uppercase hover:bg-[#a3e1f0]"
                 >
                   View referrals
                 </button>
               </div>
             ))}
             {referrers.length === 0 && (
-              <p className="text-gray-500 col-span-full text-center py-8">
+              <p className="text-[#101626] col-span-full text-center py-8 font-bold">
                 No referrers registered yet
               </p>
             )}

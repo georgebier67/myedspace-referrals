@@ -67,18 +67,18 @@ export default function RegisterReferral() {
       <div className="min-h-screen flex items-center justify-center p-4">
         <div className="card p-8 max-w-md w-full text-center">
           <SuccessAnimation />
-          <h1 className="text-2xl font-bold text-gray-900 mt-6 mb-2">
+          <h1 className="text-2xl font-black text-[#101626] mt-6 mb-2 uppercase">
             {isExisting ? 'Welcome Back!' : 'You\'re All Set!'}
           </h1>
-          <p className="text-gray-600 mb-6">
+          <p className="text-[#101626] mb-6">
             {isExisting
               ? 'Here\'s your existing referral link.'
               : 'Share your referral link with friends and earn rewards!'}
           </p>
 
-          <div className="bg-gray-50 rounded-lg p-4 mb-4">
-            <p className="text-sm text-gray-500 mb-2">Your Referral Link</p>
-            <p className="font-mono text-sm text-primary break-all">
+          <div className="bg-[#a3e1f0] p-4 mb-4 border-3 border-[#101626]">
+            <p className="text-sm text-[#101626] mb-2 font-bold uppercase">Your Referral Link</p>
+            <p className="font-mono text-sm text-[#3533ff] break-all font-bold">
               {referrer.referral_link}
             </p>
           </div>
@@ -90,33 +90,33 @@ export default function RegisterReferral() {
             {copied ? (
               <span className="flex items-center justify-center gap-2">
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  <path strokeLinecap="square" strokeLinejoin="miter" strokeWidth={3} d="M5 13l4 4L19 7" />
                 </svg>
                 Copied!
               </span>
             ) : (
               <span className="flex items-center justify-center gap-2">
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                  <path strokeLinecap="square" strokeLinejoin="miter" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
                 </svg>
                 Copy Link
               </span>
             )}
           </button>
 
-          <div className="mt-6 pt-6 border-t border-gray-200">
-            <h3 className="font-semibold text-gray-900 mb-3">How It Works</h3>
-            <div className="text-left space-y-3 text-sm text-gray-600">
+          <div className="mt-6 pt-6 border-t-3 border-[#101626]">
+            <h3 className="font-bold text-[#101626] mb-3 uppercase">How It Works</h3>
+            <div className="text-left space-y-3 text-sm text-[#101626]">
               <div className="flex gap-3">
-                <span className="flex-shrink-0 w-6 h-6 rounded bg-primary text-white flex items-center justify-center font-mono text-xs">1</span>
+                <span className="flex-shrink-0 w-6 h-6 bg-[#3533ff] text-white flex items-center justify-center font-mono text-xs font-bold border-2 border-[#101626]">1</span>
                 <span>Share your link with friends</span>
               </div>
               <div className="flex gap-3">
-                <span className="flex-shrink-0 w-6 h-6 rounded bg-primary text-white flex items-center justify-center font-mono text-xs">2</span>
+                <span className="flex-shrink-0 w-6 h-6 bg-[#3533ff] text-white flex items-center justify-center font-mono text-xs font-bold border-2 border-[#101626]">2</span>
                 <span>They sign up through your link</span>
               </div>
               <div className="flex gap-3">
-                <span className="flex-shrink-0 w-6 h-6 rounded bg-primary text-white flex items-center justify-center font-mono text-xs">3</span>
+                <span className="flex-shrink-0 w-6 h-6 bg-[#3533ff] text-white flex items-center justify-center font-mono text-xs font-bold border-2 border-[#101626]">3</span>
                 <span>After 30 days, you get a $150 Amazon voucher!</span>
               </div>
             </div>
@@ -124,7 +124,7 @@ export default function RegisterReferral() {
 
           <Link
             href="/terms"
-            className="block mt-4 text-sm text-gray-500 hover:text-primary transition-colors"
+            className="block mt-4 text-sm text-[#101626] hover:bg-[#a3e1f0]"
           >
             View Terms & Conditions
           </Link>
@@ -137,10 +137,10 @@ export default function RegisterReferral() {
     <div className="min-h-screen flex items-center justify-center p-4">
       <div className="card p-8 max-w-md w-full">
         <div className="text-center mb-8">
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">
+          <h1 className="text-2xl font-black text-[#101626] mb-2 uppercase">
             MyEdSpace Referral Program
           </h1>
-          <p className="text-gray-600">
+          <p className="text-[#101626]">
             Get your unique referral link and earn $150 for every friend who joins!
           </p>
         </div>
@@ -154,7 +154,7 @@ export default function RegisterReferral() {
             <div>
               <label
                 htmlFor="name"
-                className="block text-sm font-medium text-gray-700 mb-1"
+                className="block text-sm font-bold text-[#101626] mb-1 uppercase"
               >
                 Your Name
               </label>
@@ -172,7 +172,7 @@ export default function RegisterReferral() {
             <div>
               <label
                 htmlFor="email"
-                className="block text-sm font-medium text-gray-700 mb-1"
+                className="block text-sm font-bold text-[#101626] mb-1 uppercase"
               >
                 Your Email
               </label>
@@ -185,14 +185,14 @@ export default function RegisterReferral() {
                 placeholder="john@example.com"
                 required
               />
-              <p className="text-xs text-gray-500 mt-1">
+              <p className="text-xs text-[#101626] mt-1">
                 Use the email associated with your MyEdSpace account
               </p>
             </div>
 
             {error && (
-              <div className="pixel-shake bg-red-50 border-2 border-red-200 rounded-lg p-3">
-                <p className="text-sm text-red-600">{error}</p>
+              <div className="pixel-shake bg-[#ff3333]/10 border-3 border-[#ff3333] p-3">
+                <p className="text-sm text-[#ff3333] font-bold">{error}</p>
               </div>
             )}
 
@@ -204,9 +204,9 @@ export default function RegisterReferral() {
               Get My Referral Link
             </button>
 
-            <p className="text-xs text-center text-gray-500">
+            <p className="text-xs text-center text-[#101626]">
               By registering, you agree to our{' '}
-              <Link href="/terms" className="text-primary hover:underline">
+              <Link href="/terms" className="text-[#3533ff] hover:bg-[#a3e1f0]">
                 Terms & Conditions
               </Link>
             </p>

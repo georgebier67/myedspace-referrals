@@ -104,25 +104,25 @@ function ReferralForm() {
     return (
       <div className="min-h-screen flex items-center justify-center p-4">
         <div className="card p-8 max-w-md w-full text-center">
-          <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-red-100 flex items-center justify-center">
+          <div className="w-16 h-16 mx-auto mb-4 bg-[#ff3333]/10 border-3 border-[#ff3333] flex items-center justify-center">
             <svg
-              className="w-8 h-8 text-red-500"
+              className="w-8 h-8 text-[#ff3333]"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
             >
               <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
+                strokeLinecap="square"
+                strokeLinejoin="miter"
+                strokeWidth={3}
                 d="M6 18L18 6M6 6l12 12"
               />
             </svg>
           </div>
-          <h1 className="text-xl font-bold text-gray-900 mb-2">
+          <h1 className="text-xl font-black text-[#101626] mb-2 uppercase">
             Invalid Referral Link
           </h1>
-          <p className="text-gray-600 mb-6">
+          <p className="text-[#101626] mb-6">
             This referral link is invalid or has expired. Please ask your friend
             to send you a new link.
           </p>
@@ -141,13 +141,13 @@ function ReferralForm() {
     <div className="min-h-screen flex items-center justify-center p-4">
       <div className="card p-8 max-w-md w-full">
         <div className="text-center mb-6">
-          <div className="inline-block bg-primary/10 text-primary px-3 py-1 rounded-full text-sm font-medium mb-4">
+          <div className="inline-block bg-[#a3e1f0] text-[#101626] px-4 py-2 text-sm font-bold uppercase mb-4 border-3 border-[#101626]">
             Referred by {referrer?.name}
           </div>
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">
+          <h1 className="text-2xl font-black text-[#101626] mb-2 uppercase">
             Welcome to MyEdSpace!
           </h1>
-          <p className="text-gray-600">
+          <p className="text-[#101626]">
             Complete your details to get started with your free trial.
           </p>
         </div>
@@ -161,7 +161,7 @@ function ReferralForm() {
             <div>
               <label
                 htmlFor="name"
-                className="block text-sm font-medium text-gray-700 mb-1"
+                className="block text-sm font-bold text-[#101626] mb-1 uppercase"
               >
                 Your Name *
               </label>
@@ -179,7 +179,7 @@ function ReferralForm() {
             <div>
               <label
                 htmlFor="email"
-                className="block text-sm font-medium text-gray-700 mb-1"
+                className="block text-sm font-bold text-[#101626] mb-1 uppercase"
               >
                 Your Email *
               </label>
@@ -197,7 +197,7 @@ function ReferralForm() {
             <div>
               <label
                 htmlFor="phone"
-                className="block text-sm font-medium text-gray-700 mb-1"
+                className="block text-sm font-bold text-[#101626] mb-1 uppercase"
               >
                 Phone Number
               </label>
@@ -214,7 +214,7 @@ function ReferralForm() {
             <div>
               <label
                 htmlFor="childGrade"
-                className="block text-sm font-medium text-gray-700 mb-1"
+                className="block text-sm font-bold text-[#101626] mb-1 uppercase"
               >
                 Child&apos;s Grade
               </label>
@@ -242,8 +242,8 @@ function ReferralForm() {
             </div>
 
             {error && (
-              <div className="pixel-shake bg-red-50 border-2 border-red-200 rounded-lg p-3">
-                <p className="text-sm text-red-600">{error}</p>
+              <div className="pixel-shake bg-[#ff3333]/10 border-3 border-[#ff3333] p-3">
+                <p className="text-sm text-[#ff3333] font-bold">{error}</p>
               </div>
             )}
 
@@ -255,9 +255,9 @@ function ReferralForm() {
               Continue to Book Your Class
             </button>
 
-            <p className="text-xs text-center text-gray-500">
+            <p className="text-xs text-center text-[#101626]">
               By signing up, you agree to our{' '}
-              <Link href="/terms" className="text-primary hover:underline">
+              <Link href="/terms" className="text-[#3533ff] hover:bg-[#a3e1f0]">
                 Terms & Conditions
               </Link>
             </p>

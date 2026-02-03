@@ -13,25 +13,25 @@ export function PixelLoader({ message = 'Loading...' }: PixelLoaderProps) {
   useEffect(() => {
     const interval = setInterval(() => {
       setActiveBlocks((prev) => (prev >= totalBlocks ? 0 : prev + 1));
-    }, 150);
+    }, 100);
 
     return () => clearInterval(interval);
   }, []);
 
   return (
     <div className="flex flex-col items-center gap-4">
-      <div className="flex">
+      <div className="flex border-3 border-[#101626] p-1">
         {Array.from({ length: totalBlocks }).map((_, i) => (
           <div
             key={i}
-            className={`progress-block ${i < activeBlocks ? 'active' : ''}`}
+            className="w-4 h-6 mr-1 last:mr-0"
             style={{
-              opacity: i < activeBlocks ? 1 : 0.2,
+              backgroundColor: i < activeBlocks ? '#b1db00' : '#e5e7eb',
             }}
           />
         ))}
       </div>
-      <p className="font-mono text-sm text-gray-600">{message}</p>
+      <p className="font-mono text-sm text-[#101626] font-bold uppercase">{message}</p>
     </div>
   );
 }
@@ -48,19 +48,21 @@ export function PixelSpinner({ size = 32 }: { size?: number }) {
 export function SuccessAnimation() {
   return (
     <div className="pixel-cascade flex items-center justify-center">
-      <svg
-        className="w-16 h-16 text-green-500"
-        fill="none"
-        stroke="currentColor"
-        viewBox="0 0 24 24"
-      >
-        <path
-          strokeLinecap="square"
-          strokeLinejoin="miter"
-          strokeWidth={3}
-          d="M5 13l4 4L19 7"
-        />
-      </svg>
+      <div className="w-16 h-16 bg-[#b1db00] border-3 border-[#101626] flex items-center justify-center">
+        <svg
+          className="w-10 h-10 text-[#101626]"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            strokeLinecap="square"
+            strokeLinejoin="miter"
+            strokeWidth={4}
+            d="M5 13l4 4L19 7"
+          />
+        </svg>
+      </div>
     </div>
   );
 }
