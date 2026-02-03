@@ -58,9 +58,14 @@ export async function POST(request: NextRequest) {
     // Send Slack notification (non-blocking)
     notifyNewReferral(referrer.name, name, email).catch(console.error);
 
-    // Build redirect URL with UTMs
-    const bookingUrl = process.env.BOOKING_URL || 'https://myedspace.com/pages/myedspace-learn-with-eddie';
+    // Build redirect URL with pre-filled form data
+    const bookingUrl = 'https://myedspace-booking.vercel.app/book';
     const redirectUrl = new URL(bookingUrl);
+    redirectUrl.searchParams.set('name', name);
+    redirectUrl.searchParams.set('email', email);
+    if (phone) {
+      redirectUrl.searchParams.set('phone', phone);
+    }
     redirectUrl.searchParams.set('utm_source', 'referral');
     redirectUrl.searchParams.set('utm_medium', 'friend_signup');
     redirectUrl.searchParams.set('utm_campaign', 'referral_program');

@@ -252,7 +252,7 @@ function ReferralForm() {
               className="btn-primary w-full"
               disabled={isLoading}
             >
-              Continue to Book Your Class
+              Continue to Learn with Eddie
             </button>
 
             <p className="text-xs text-center text-[#101626]">
