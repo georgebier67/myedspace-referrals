@@ -1,7 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { PixelLoader, SuccessAnimation } from '@/components/PixelLoader';
+import { Confetti, CelebrationBanner } from '@/components/Confetti';
 import Link from 'next/link';
 
 interface Referrer {
@@ -20,6 +21,8 @@ export default function RegisterReferral() {
   const [referrer, setReferrer] = useState<Referrer | null>(null);
   const [copied, setCopied] = useState(false);
   const [isExisting, setIsExisting] = useState(false);
+  const [showCelebration, setShowCelebration] = useState(false);
+  const [animationStep, setAnimationStep] = useState(0);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -47,6 +50,16 @@ export default function RegisterReferral() {
 
       setReferrer(data.referrer);
       setIsExisting(data.isExisting);
+
+      // Trigger celebration for new registrations
+      if (!data.isExisting) {
+        setShowCelebration(true);
+        // Stagger the animation steps
+        setTimeout(() => setAnimationStep(1), 200);
+        setTimeout(() => setAnimationStep(2), 600);
+        setTimeout(() => setAnimationStep(3), 1000);
+        setTimeout(() => setAnimationStep(4), 1400);
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Something went wrong');
     } finally {
@@ -64,19 +77,25 @@ export default function RegisterReferral() {
 
   if (referrer) {
     return (
-      <div className="min-h-screen flex items-center justify-center p-4">
-        <div className="card p-8 max-w-md w-full text-center">
+      <div className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden">
+        {/* Confetti celebration for new registrations */}
+        {showCelebration && <Confetti duration={5000} />}
+        {showCelebration && <CelebrationBanner show={animationStep >= 1} />}
+
+        <div className={`card p-8 max-w-md w-full text-center relative z-10 ${showCelebration ? 'animate-pop-in' : ''}`}>
           <SuccessAnimation />
-          <h1 className="text-2xl font-black text-[#101626] mt-6 mb-2 uppercase">
+
+          <h1 className={`text-2xl font-black text-[#101626] mt-6 mb-2 uppercase ${showCelebration && animationStep >= 1 ? 'animate-slide-up' : ''}`}>
             {isExisting ? 'Welcome Back!' : 'You\'re All Set!'}
           </h1>
-          <p className="text-[#101626] mb-6">
+
+          <p className={`text-[#101626] mb-6 ${showCelebration && animationStep >= 1 ? 'animate-slide-up delay-100' : ''}`}>
             {isExisting
               ? 'Here\'s your existing referral link.'
               : 'Share your referral link with friends and earn rewards!'}
           </p>
 
-          <div className="bg-[#a3e1f0] p-4 mb-4 border-3 border-[#101626]">
+          <div className={`bg-[#a3e1f0] p-4 mb-4 border-3 border-[#101626] ${showCelebration && animationStep >= 2 ? 'animate-slide-up' : ''}`}>
             <p className="text-sm text-[#101626] mb-2 font-bold uppercase">Your Referral Link</p>
             <p className="font-mono text-sm text-[#3533ff] break-all font-bold">
               {referrer.referral_link}
@@ -85,7 +104,7 @@ export default function RegisterReferral() {
 
           <button
             onClick={copyToClipboard}
-            className="btn-primary w-full relative"
+            className={`btn-primary w-full relative ${showCelebration && animationStep >= 2 ? 'animate-slide-up delay-100' : ''}`}
           >
             {copied ? (
               <span className="flex items-center justify-center gap-2">
@@ -104,27 +123,27 @@ export default function RegisterReferral() {
             )}
           </button>
 
-          <div className="mt-6 pt-6 border-t-3 border-[#101626]">
+          <div className={`mt-6 pt-6 border-t-3 border-[#101626] ${showCelebration && animationStep >= 3 ? 'animate-slide-up' : ''}`}>
             <h3 className="font-bold text-[#101626] mb-3 uppercase">How It Works</h3>
             <div className="text-left space-y-3 text-sm text-[#101626]">
-              <div className="flex gap-3">
+              <div className={`flex gap-3 ${showCelebration && animationStep >= 3 ? 'animate-slide-up delay-100' : ''}`}>
                 <span className="flex-shrink-0 w-6 h-6 bg-[#3533ff] text-white flex items-center justify-center font-mono text-xs font-bold border-2 border-[#101626]">1</span>
                 <span>Share your link with friends</span>
               </div>
-              <div className="flex gap-3">
+              <div className={`flex gap-3 ${showCelebration && animationStep >= 3 ? 'animate-slide-up delay-200' : ''}`}>
                 <span className="flex-shrink-0 w-6 h-6 bg-[#3533ff] text-white flex items-center justify-center font-mono text-xs font-bold border-2 border-[#101626]">2</span>
                 <span>They sign up through your link</span>
               </div>
-              <div className="flex gap-3">
+              <div className={`flex gap-3 ${showCelebration && animationStep >= 4 ? 'animate-slide-up delay-300' : ''}`}>
                 <span className="flex-shrink-0 w-6 h-6 bg-[#3533ff] text-white flex items-center justify-center font-mono text-xs font-bold border-2 border-[#101626]">3</span>
-                <span>After 30 days, you get a $150 Amazon voucher!</span>
+                <span>After 30 days, you get a <span className="inline-block bg-[#b1db00] px-1 font-black border-2 border-[#101626] animate-pulse-reward">$150</span> Amazon voucher!</span>
               </div>
             </div>
           </div>
 
           <Link
             href="/terms"
-            className="block mt-4 text-sm text-[#101626] hover:bg-[#a3e1f0]"
+            className={`block mt-4 text-sm text-[#101626] hover:bg-[#a3e1f0] ${showCelebration && animationStep >= 4 ? 'animate-slide-up delay-400' : ''}`}
           >
             View Terms & Conditions
           </Link>
