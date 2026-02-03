@@ -214,6 +214,30 @@ export async function incrementReferrerCount(email: string): Promise<void> {
   }
 }
 
+export async function deleteReferrer(email: string): Promise<boolean> {
+  const supabase = getSupabase();
+  const normalizedEmail = email.toLowerCase();
+
+  // First delete all referrals associated with this referrer
+  await supabase
+    .from('referrals')
+    .delete()
+    .eq('referrer_email', normalizedEmail);
+
+  // Then delete the referrer
+  const { error } = await supabase
+    .from('referrers')
+    .delete()
+    .eq('email', normalizedEmail);
+
+  if (error) {
+    console.error('Error deleting referrer:', error);
+    return false;
+  }
+
+  return true;
+}
+
 // ================== REFERRALS ==================
 
 export async function getReferrals(): Promise<Referral[]> {

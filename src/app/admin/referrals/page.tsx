@@ -175,6 +175,7 @@ export default function AdminDashboard() {
   const [search, setSearch] = useState('');
   const [selectedReferrer, setSelectedReferrer] = useState<string | null>(null);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
+  const [deleteLoading, setDeleteLoading] = useState<string | null>(null);
 
   const checkAuth = useCallback(async () => {
     try {
@@ -231,6 +232,35 @@ export default function AdminDashboard() {
       alert('Action failed');
     } finally {
       setActionLoading(null);
+    }
+  };
+
+  const handleDeleteReferrer = async (email: string, name: string) => {
+    if (!confirm(`Are you sure you want to delete ${name}?\n\nThis will also delete all their referrals. This action cannot be undone.`)) {
+      return;
+    }
+
+    setDeleteLoading(email);
+    try {
+      const response = await fetch('/api/admin/delete-referrer', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email }),
+      });
+
+      if (response.ok) {
+        await fetchData();
+        if (selectedReferrer === email) {
+          setSelectedReferrer(null);
+        }
+      } else {
+        const data = await response.json();
+        alert(data.error || 'Delete failed');
+      }
+    } catch {
+      alert('Delete failed');
+    } finally {
+      setDeleteLoading(null);
     }
   };
 
@@ -542,15 +572,24 @@ export default function AdminDashboard() {
                 <p className="text-xs text-[#101626]/60 mt-1">
                   Joined {formatDate(referrer.created_at)}
                 </p>
-                <button
-                  onClick={() => {
-                    setSelectedReferrer(referrer.email);
-                    window.scrollTo({ top: 0, behavior: 'smooth' });
-                  }}
-                  className="mt-2 text-sm text-[#3533ff] font-bold uppercase hover:bg-[#a3e1f0]"
-                >
-                  View referrals
-                </button>
+                <div className="flex gap-2 mt-2">
+                  <button
+                    onClick={() => {
+                      setSelectedReferrer(referrer.email);
+                      window.scrollTo({ top: 0, behavior: 'smooth' });
+                    }}
+                    className="text-sm text-[#3533ff] font-bold uppercase hover:bg-[#a3e1f0]"
+                  >
+                    View referrals
+                  </button>
+                  <button
+                    onClick={() => handleDeleteReferrer(referrer.email, referrer.name)}
+                    disabled={deleteLoading === referrer.email}
+                    className="text-sm text-[#ff3333] font-bold uppercase hover:bg-[#ff3333]/10 disabled:opacity-50"
+                  >
+                    {deleteLoading === referrer.email ? 'Deleting...' : 'Delete'}
+                  </button>
+                </div>
               </div>
             ))}
             {referrers.length === 0 && (
