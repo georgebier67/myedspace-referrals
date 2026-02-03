@@ -17,7 +17,6 @@ function ReferralForm() {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
-  const [childGrade, setChildGrade] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isValidating, setIsValidating] = useState(true);
   const [error, setError] = useState('');
@@ -70,7 +69,6 @@ function ReferralForm() {
             name,
             email,
             phone,
-            childGrade,
           }),
         }),
         minLoadTime,
@@ -209,36 +207,6 @@ function ReferralForm() {
                 className="input-pixel w-full"
                 placeholder="+1 (555) 123-4567"
               />
-            </div>
-
-            <div>
-              <label
-                htmlFor="childGrade"
-                className="block text-sm font-bold text-[#101626] mb-1 uppercase"
-              >
-                Child&apos;s Grade
-              </label>
-              <select
-                id="childGrade"
-                value={childGrade}
-                onChange={(e) => setChildGrade(e.target.value)}
-                className="input-pixel w-full"
-              >
-                <option value="">Select grade...</option>
-                <option value="K">Kindergarten</option>
-                <option value="1">1st Grade</option>
-                <option value="2">2nd Grade</option>
-                <option value="3">3rd Grade</option>
-                <option value="4">4th Grade</option>
-                <option value="5">5th Grade</option>
-                <option value="6">6th Grade</option>
-                <option value="7">7th Grade</option>
-                <option value="8">8th Grade</option>
-                <option value="9">9th Grade</option>
-                <option value="10">10th Grade</option>
-                <option value="11">11th Grade</option>
-                <option value="12">12th Grade</option>
-              </select>
             </div>
 
             {error && (
