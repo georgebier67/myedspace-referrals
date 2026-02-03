@@ -26,7 +26,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Look up referrer by code
-    const referrer = getReferrerByCode(referralCode);
+    const referrer = await getReferrerByCode(referralCode);
     if (!referrer) {
       return NextResponse.json(
         { error: 'Invalid referral code. Please check your link and try again.' },
@@ -35,7 +35,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Create referral record
-    const referral = createReferral(
+    const referral = await createReferral(
       referrer,
       email,
       name,

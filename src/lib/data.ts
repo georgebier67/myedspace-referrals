@@ -1,16 +1,13 @@
-import fs from 'fs';
-import path from 'path';
-import { Referrer, ReferrersStore, Referral } from './types';
+import { neon } from '@neondatabase/serverless';
+import { Referrer, Referral, ReferralStatus } from './types';
 
-const DATA_DIR = path.join(process.cwd(), 'data');
-const REFERRERS_FILE = path.join(DATA_DIR, 'referrers.json');
-const REFERRALS_FILE = path.join(DATA_DIR, 'referrals.json');
-
-// Ensure data directory exists
-function ensureDataDir() {
-  if (!fs.existsSync(DATA_DIR)) {
-    fs.mkdirSync(DATA_DIR, { recursive: true });
+// Get SQL client - create fresh connection each time for serverless
+function getSQL() {
+  const url = process.env.DATABASE_URL;
+  if (!url) {
+    throw new Error('DATABASE_URL environment variable is not set');
   }
+  return neon(url);
 }
 
 // Generate a unique referral code
@@ -26,96 +23,182 @@ export function generateReferralLink(code: string): string {
   return `${baseUrl}/refer?ref=${code}`;
 }
 
+// Initialize database tables
+export async function initDatabase() {
+  const sql = getSQL();
+  try {
+    // Create referrers table
+    await sql`
+      CREATE TABLE IF NOT EXISTS referrers (
+        id SERIAL PRIMARY KEY,
+        email VARCHAR(255) UNIQUE NOT NULL,
+        name VARCHAR(255) NOT NULL,
+        referral_code VARCHAR(100) UNIQUE NOT NULL,
+        referral_link TEXT NOT NULL,
+        total_referrals INTEGER DEFAULT 0,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `;
+
+    // Create referrals table
+    await sql`
+      CREATE TABLE IF NOT EXISTS referrals (
+        id VARCHAR(100) PRIMARY KEY,
+        referrer_email VARCHAR(255) NOT NULL,
+        referrer_name VARCHAR(255) NOT NULL,
+        referred_email VARCHAR(255) NOT NULL,
+        referred_name VARCHAR(255) NOT NULL,
+        referred_phone VARCHAR(50),
+        referred_child_grade VARCHAR(20),
+        signup_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        purchase_date TIMESTAMP,
+        reward_eligible_date TIMESTAMP,
+        status VARCHAR(50) DEFAULT 'pending',
+        reward_issued_date TIMESTAMP,
+        notes TEXT,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `;
+
+    return true;
+  } catch (error) {
+    console.error('Failed to initialize database:', error);
+    return false;
+  }
+}
+
 // ================== REFERRERS ==================
 
-export function getReferrers(): ReferrersStore {
-  ensureDataDir();
-  if (!fs.existsSync(REFERRERS_FILE)) {
-    fs.writeFileSync(REFERRERS_FILE, '{}');
-    return {};
-  }
-  const data = fs.readFileSync(REFERRERS_FILE, 'utf-8');
-  return JSON.parse(data);
+export async function getReferrers(): Promise<Referrer[]> {
+  const sql = getSQL();
+  const rows = await sql`SELECT * FROM referrers ORDER BY created_at DESC`;
+  return rows.map(row => ({
+    referral_code: row.referral_code,
+    referral_link: row.referral_link,
+    email: row.email,
+    name: row.name,
+    total_referrals: row.total_referrals,
+    created_at: row.created_at?.toISOString() || new Date().toISOString(),
+  }));
 }
 
-export function saveReferrers(referrers: ReferrersStore): void {
-  ensureDataDir();
-  fs.writeFileSync(REFERRERS_FILE, JSON.stringify(referrers, null, 2));
+export async function getReferrerByEmail(email: string): Promise<Referrer | null> {
+  const sql = getSQL();
+  const rows = await sql`SELECT * FROM referrers WHERE email = ${email.toLowerCase()} LIMIT 1`;
+  if (rows.length === 0) return null;
+
+  const row = rows[0];
+  return {
+    referral_code: row.referral_code,
+    referral_link: row.referral_link,
+    email: row.email,
+    name: row.name,
+    total_referrals: row.total_referrals,
+    created_at: row.created_at?.toISOString() || new Date().toISOString(),
+  };
 }
 
-export function getReferrerByEmail(email: string): Referrer | null {
-  const referrers = getReferrers();
-  return referrers[email.toLowerCase()] || null;
+export async function getReferrerByCode(code: string): Promise<Referrer | null> {
+  const sql = getSQL();
+  const rows = await sql`SELECT * FROM referrers WHERE referral_code = ${code} LIMIT 1`;
+  if (rows.length === 0) return null;
+
+  const row = rows[0];
+  return {
+    referral_code: row.referral_code,
+    referral_link: row.referral_link,
+    email: row.email,
+    name: row.name,
+    total_referrals: row.total_referrals,
+    created_at: row.created_at?.toISOString() || new Date().toISOString(),
+  };
 }
 
-export function getReferrerByCode(code: string): Referrer | null {
-  const referrers = getReferrers();
-  return Object.values(referrers).find(r => r.referral_code === code) || null;
-}
-
-export function createReferrer(email: string, name: string): Referrer {
-  const referrers = getReferrers();
+export async function createReferrer(email: string, name: string): Promise<Referrer> {
+  const sql = getSQL();
   const normalizedEmail = email.toLowerCase();
 
   // Check if already exists
-  if (referrers[normalizedEmail]) {
-    return referrers[normalizedEmail];
+  const existing = await getReferrerByEmail(normalizedEmail);
+  if (existing) {
+    return existing;
   }
 
   const code = generateReferralCode();
-  const referrer: Referrer = {
+  const link = generateReferralLink(code);
+
+  await sql`
+    INSERT INTO referrers (email, name, referral_code, referral_link, total_referrals)
+    VALUES (${normalizedEmail}, ${name}, ${code}, ${link}, 0)
+  `;
+
+  return {
     referral_code: code,
-    referral_link: generateReferralLink(code),
+    referral_link: link,
     email: normalizedEmail,
     name: name,
     total_referrals: 0,
     created_at: new Date().toISOString(),
   };
-
-  referrers[normalizedEmail] = referrer;
-  saveReferrers(referrers);
-
-  return referrer;
 }
 
-export function incrementReferrerCount(email: string): void {
-  const referrers = getReferrers();
-  const normalizedEmail = email.toLowerCase();
-
-  if (referrers[normalizedEmail]) {
-    referrers[normalizedEmail].total_referrals += 1;
-    saveReferrers(referrers);
-  }
+export async function incrementReferrerCount(email: string): Promise<void> {
+  const sql = getSQL();
+  await sql`
+    UPDATE referrers
+    SET total_referrals = total_referrals + 1
+    WHERE email = ${email.toLowerCase()}
+  `;
 }
 
 // ================== REFERRALS ==================
 
-export function getReferrals(): Referral[] {
-  ensureDataDir();
-  if (!fs.existsSync(REFERRALS_FILE)) {
-    fs.writeFileSync(REFERRALS_FILE, '[]');
-    return [];
-  }
-  const data = fs.readFileSync(REFERRALS_FILE, 'utf-8');
-  return JSON.parse(data);
+export async function getReferrals(): Promise<Referral[]> {
+  const sql = getSQL();
+  const rows = await sql`SELECT * FROM referrals ORDER BY created_at DESC`;
+  return rows.map(row => ({
+    id: row.id,
+    referrer_email: row.referrer_email,
+    referrer_name: row.referrer_name,
+    referred_email: row.referred_email,
+    referred_name: row.referred_name,
+    referred_phone: row.referred_phone || '',
+    referred_child_grade: row.referred_child_grade || '',
+    signup_date: row.signup_date?.toISOString() || new Date().toISOString(),
+    purchase_date: row.purchase_date?.toISOString() || null,
+    reward_eligible_date: row.reward_eligible_date?.toISOString() || null,
+    status: row.status as ReferralStatus,
+    reward_issued_date: row.reward_issued_date?.toISOString() || null,
+    notes: row.notes || '',
+    created_at: row.created_at?.toISOString() || new Date().toISOString(),
+  }));
 }
 
-export function saveReferrals(referrals: Referral[]): void {
-  ensureDataDir();
-  fs.writeFileSync(REFERRALS_FILE, JSON.stringify(referrals, null, 2));
-}
-
-export function createReferral(
+export async function createReferral(
   referrer: Referrer,
   friendEmail: string,
   friendName: string,
   friendPhone: string,
   childGrade: string
-): Referral {
-  const referrals = getReferrals();
+): Promise<Referral> {
+  const sql = getSQL();
+  const id = `ref_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`;
 
-  const referral: Referral = {
-    id: `ref_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
+  await sql`
+    INSERT INTO referrals (
+      id, referrer_email, referrer_name, referred_email, referred_name,
+      referred_phone, referred_child_grade, status
+    ) VALUES (
+      ${id}, ${referrer.email}, ${referrer.name}, ${friendEmail.toLowerCase()},
+      ${friendName}, ${friendPhone}, ${childGrade}, 'pending'
+    )
+  `;
+
+  // Increment referrer's count
+  await incrementReferrerCount(referrer.email);
+
+  return {
+    id,
     referrer_email: referrer.email,
     referrer_name: referrer.name,
     referred_email: friendEmail.toLowerCase(),
@@ -130,51 +213,107 @@ export function createReferral(
     notes: '',
     created_at: new Date().toISOString(),
   };
-
-  referrals.push(referral);
-  saveReferrals(referrals);
-
-  // Increment referrer's count
-  incrementReferrerCount(referrer.email);
-
-  return referral;
 }
 
-export function updateReferralStatus(
+export async function updateReferralStatus(
   referralId: string,
   updates: Partial<Referral>
-): Referral | null {
-  const referrals = getReferrals();
-  const index = referrals.findIndex(r => r.id === referralId);
+): Promise<Referral | null> {
+  const sql = getSQL();
 
-  if (index === -1) return null;
+  // Build dynamic update query
+  const setClauses: string[] = [];
+  const values: (string | null | Date)[] = [];
 
-  referrals[index] = { ...referrals[index], ...updates };
-  saveReferrals(referrals);
+  if (updates.status !== undefined) {
+    await sql`UPDATE referrals SET status = ${updates.status} WHERE id = ${referralId}`;
+  }
+  if (updates.purchase_date !== undefined) {
+    const purchaseDate = updates.purchase_date ? new Date(updates.purchase_date) : null;
+    await sql`UPDATE referrals SET purchase_date = ${purchaseDate} WHERE id = ${referralId}`;
+  }
+  if (updates.reward_eligible_date !== undefined) {
+    const eligibleDate = updates.reward_eligible_date ? new Date(updates.reward_eligible_date) : null;
+    await sql`UPDATE referrals SET reward_eligible_date = ${eligibleDate} WHERE id = ${referralId}`;
+  }
+  if (updates.reward_issued_date !== undefined) {
+    const issuedDate = updates.reward_issued_date ? new Date(updates.reward_issued_date) : null;
+    await sql`UPDATE referrals SET reward_issued_date = ${issuedDate} WHERE id = ${referralId}`;
+  }
+  if (updates.notes !== undefined) {
+    await sql`UPDATE referrals SET notes = ${updates.notes} WHERE id = ${referralId}`;
+  }
 
-  return referrals[index];
+  // Fetch and return updated referral
+  return getReferralById(referralId);
 }
 
-export function getReferralsByReferrer(email: string): Referral[] {
-  const referrals = getReferrals();
-  return referrals.filter(r => r.referrer_email === email.toLowerCase());
+export async function getReferralsByReferrer(email: string): Promise<Referral[]> {
+  const sql = getSQL();
+  const rows = await sql`
+    SELECT * FROM referrals
+    WHERE referrer_email = ${email.toLowerCase()}
+    ORDER BY created_at DESC
+  `;
+  return rows.map(row => ({
+    id: row.id,
+    referrer_email: row.referrer_email,
+    referrer_name: row.referrer_name,
+    referred_email: row.referred_email,
+    referred_name: row.referred_name,
+    referred_phone: row.referred_phone || '',
+    referred_child_grade: row.referred_child_grade || '',
+    signup_date: row.signup_date?.toISOString() || new Date().toISOString(),
+    purchase_date: row.purchase_date?.toISOString() || null,
+    reward_eligible_date: row.reward_eligible_date?.toISOString() || null,
+    status: row.status as ReferralStatus,
+    reward_issued_date: row.reward_issued_date?.toISOString() || null,
+    notes: row.notes || '',
+    created_at: row.created_at?.toISOString() || new Date().toISOString(),
+  }));
 }
 
-export function getReferralById(id: string): Referral | null {
-  const referrals = getReferrals();
-  return referrals.find(r => r.id === id) || null;
+export async function getReferralById(id: string): Promise<Referral | null> {
+  const sql = getSQL();
+  const rows = await sql`SELECT * FROM referrals WHERE id = ${id} LIMIT 1`;
+  if (rows.length === 0) return null;
+
+  const row = rows[0];
+  return {
+    id: row.id,
+    referrer_email: row.referrer_email,
+    referrer_name: row.referrer_name,
+    referred_email: row.referred_email,
+    referred_name: row.referred_name,
+    referred_phone: row.referred_phone || '',
+    referred_child_grade: row.referred_child_grade || '',
+    signup_date: row.signup_date?.toISOString() || new Date().toISOString(),
+    purchase_date: row.purchase_date?.toISOString() || null,
+    reward_eligible_date: row.reward_eligible_date?.toISOString() || null,
+    status: row.status as ReferralStatus,
+    reward_issued_date: row.reward_issued_date?.toISOString() || null,
+    notes: row.notes || '',
+    created_at: row.created_at?.toISOString() || new Date().toISOString(),
+  };
 }
 
 // Get referral statistics
-export function getReferralStats() {
-  const referrals = getReferrals();
+export async function getReferralStats() {
+  const sql = getSQL();
+
+  const [total] = await sql`SELECT COUNT(*) as count FROM referrals`;
+  const [pending] = await sql`SELECT COUNT(*) as count FROM referrals WHERE status = 'pending'`;
+  const [purchased] = await sql`SELECT COUNT(*) as count FROM referrals WHERE status = 'purchased'`;
+  const [qualified] = await sql`SELECT COUNT(*) as count FROM referrals WHERE status = 'qualified'`;
+  const [rewarded] = await sql`SELECT COUNT(*) as count FROM referrals WHERE status = 'rewarded'`;
+  const [disqualified] = await sql`SELECT COUNT(*) as count FROM referrals WHERE status = 'disqualified'`;
 
   return {
-    total: referrals.length,
-    pending: referrals.filter(r => r.status === 'pending').length,
-    purchased: referrals.filter(r => r.status === 'purchased').length,
-    qualified: referrals.filter(r => r.status === 'qualified').length,
-    rewarded: referrals.filter(r => r.status === 'rewarded').length,
-    disqualified: referrals.filter(r => r.status === 'disqualified').length,
+    total: Number(total.count),
+    pending: Number(pending.count),
+    purchased: Number(purchased.count),
+    qualified: Number(qualified.count),
+    rewarded: Number(rewarded.count),
+    disqualified: Number(disqualified.count),
   };
 }

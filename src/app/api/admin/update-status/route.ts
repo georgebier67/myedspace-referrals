@@ -22,7 +22,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const referral = getReferralById(referralId);
+    const referral = await getReferralById(referralId);
     if (!referral) {
       return NextResponse.json(
         { error: 'Referral not found' },
@@ -86,7 +86,7 @@ export async function POST(request: NextRequest) {
         );
     }
 
-    const updatedReferral = updateReferralStatus(referralId, updates);
+    const updatedReferral = await updateReferralStatus(referralId, updates);
 
     return NextResponse.json({
       success: true,

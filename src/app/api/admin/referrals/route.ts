@@ -10,14 +10,14 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    const referrals = getReferrals();
-    const stats = getReferralStats();
-    const referrers = getReferrers();
+    const referrals = await getReferrals();
+    const stats = await getReferralStats();
+    const referrers = await getReferrers();
 
     return NextResponse.json({
       referrals,
       stats,
-      referrers: Object.values(referrers),
+      referrers,
     });
   } catch (error) {
     console.error('Error fetching referrals:', error);

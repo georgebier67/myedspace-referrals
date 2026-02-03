@@ -25,7 +25,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Check if referrer already exists
-    const existingReferrer = getReferrerByEmail(email);
+    const existingReferrer = await getReferrerByEmail(email);
     if (existingReferrer) {
       return NextResponse.json({
         success: true,
@@ -36,7 +36,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Create new referrer
-    const referrer = createReferrer(email, name);
+    const referrer = await createReferrer(email, name);
 
     // Submit to HubSpot (non-blocking - we don't fail if HubSpot fails)
     const hubspotResult = await submitReferrerToHubSpot(

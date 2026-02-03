@@ -13,7 +13,7 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const referrer = getReferrerByCode(code);
+    const referrer = await getReferrerByCode(code);
 
     if (!referrer) {
       return NextResponse.json({
