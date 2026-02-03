@@ -34,8 +34,8 @@ export function Confetti({ duration = 4000 }: { duration?: number }) {
       y: -10 - Math.random() * 20,
       size: 8 + Math.random() * 16,
       color: BRAND_COLORS[Math.floor(Math.random() * BRAND_COLORS.length)],
-      velocityX: (Math.random() - 0.5) * 3,
-      velocityY: 2 + Math.random() * 4,
+      velocityX: (Math.random() - 0.5) * 1.5,
+      velocityY: 0.8 + Math.random() * 1.5,
       rotation: Math.random() * 360,
       rotationSpeed: (Math.random() - 0.5) * 15,
       shape: shapes[Math.floor(Math.random() * shapes.length)],
@@ -65,7 +65,7 @@ export function Confetti({ duration = 4000 }: { duration?: number }) {
             x: p.x + p.velocityX * deltaTime,
             y: p.y + p.velocityY * deltaTime,
             rotation: p.rotation + p.rotationSpeed * deltaTime,
-            velocityY: p.velocityY + 0.1 * deltaTime, // Gravity
+            velocityY: p.velocityY + 0.03 * deltaTime, // Gravity (slower)
           }))
           .filter((p) => p.y < 120)
       );

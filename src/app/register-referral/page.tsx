@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { PixelLoader, SuccessAnimation } from '@/components/PixelLoader';
-import { Confetti, CelebrationBanner } from '@/components/Confetti';
+import { Confetti } from '@/components/Confetti';
 import Link from 'next/link';
 
 interface Referrer {
@@ -79,8 +79,7 @@ export default function RegisterReferral() {
     return (
       <div className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden">
         {/* Confetti celebration for new registrations */}
-        {showCelebration && <Confetti duration={5000} />}
-        {showCelebration && <CelebrationBanner show={animationStep >= 1} />}
+        {showCelebration && <Confetti duration={6000} />}
 
         <div className={`card p-8 max-w-md w-full text-center relative z-10 ${showCelebration ? 'animate-pop-in' : ''}`}>
           <SuccessAnimation />
