@@ -1,5 +1,6 @@
 // HubSpot Forms API integration
 // Using public Forms API - no authentication required
+// Also includes Contacts API for updating properties (requires Private App token)
 
 interface HubSpotFormSubmission {
   email: string;
@@ -98,4 +99,101 @@ export async function submitReferredFriendToHubSpot(
     phone,
     referred_by: referrerEmail,
   });
+}
+
+// ================== CONTACTS API (requires Private App token) ==================
+
+// Update a contact's properties in HubSpot
+export async function updateHubSpotContact(
+  email: string,
+  properties: Record<string, string>
+): Promise<{ success: boolean; error?: string }> {
+  const accessToken = process.env.HUBSPOT_ACCESS_TOKEN;
+
+  if (!accessToken) {
+    console.error('HUBSPOT_ACCESS_TOKEN not configured');
+    return { success: false, error: 'HubSpot access token not configured' };
+  }
+
+  try {
+    // First, search for the contact by email
+    const searchUrl = 'https://api.hubapi.com/crm/v3/objects/contacts/search';
+    const searchResponse = await fetch(searchUrl, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${accessToken}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        filterGroups: [
+          {
+            filters: [
+              {
+                propertyName: 'email',
+                operator: 'EQ',
+                value: email,
+              },
+            ],
+          },
+        ],
+      }),
+    });
+
+    if (!searchResponse.ok) {
+      const errorText = await searchResponse.text();
+      console.error('HubSpot contact search failed:', errorText);
+      return { success: false, error: errorText };
+    }
+
+    const searchData = await searchResponse.json();
+
+    if (searchData.total === 0) {
+      return { success: false, error: 'Contact not found in HubSpot' };
+    }
+
+    const contactId = searchData.results[0].id;
+
+    // Update the contact's properties
+    const updateUrl = `https://api.hubapi.com/crm/v3/objects/contacts/${contactId}`;
+    const updateResponse = await fetch(updateUrl, {
+      method: 'PATCH',
+      headers: {
+        'Authorization': `Bearer ${accessToken}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ properties }),
+    });
+
+    if (!updateResponse.ok) {
+      const errorText = await updateResponse.text();
+      console.error('HubSpot contact update failed:', errorText);
+      return { success: false, error: errorText };
+    }
+
+    return { success: true };
+  } catch (error) {
+    console.error('HubSpot contact update error:', error);
+    return { success: false, error: String(error) };
+  }
+}
+
+// Update referrer's referral status in HubSpot
+export async function updateReferrerStatus(
+  referrerEmail: string,
+  status: 'qualified' | 'rewarded',
+  referredFriendName?: string
+): Promise<{ success: boolean; error?: string }> {
+  const properties: Record<string, string> = {
+    referral_status: status,
+  };
+
+  // Optionally include the friend's name for context
+  if (referredFriendName) {
+    properties.latest_qualified_referral = referredFriendName;
+  }
+
+  // Add timestamp
+  properties.referral_status_updated = new Date().toISOString();
+
+  return updateHubSpotContact(referrerEmail, properties);
 }

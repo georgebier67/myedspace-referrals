@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { validateAdminPassword } from '@/lib/auth';
 import { updateReferralStatus, getReferralById } from '@/lib/data';
 import { notifyReferralQualified } from '@/lib/slack';
+import { updateReferrerStatus } from '@/lib/hubspot';
 import { ReferralStatus } from '@/lib/types';
 
 export async function POST(request: NextRequest) {
@@ -59,6 +60,15 @@ export async function POST(request: NextRequest) {
           referral.referrer_email,
           referral.referred_name
         );
+        // Update HubSpot contact property to trigger email workflow
+        const hubspotResult = await updateReferrerStatus(
+          referral.referrer_email,
+          'qualified',
+          referral.referred_name
+        );
+        if (!hubspotResult.success) {
+          console.error('HubSpot update failed:', hubspotResult.error);
+        }
         break;
 
       case 'mark_rewarded':
