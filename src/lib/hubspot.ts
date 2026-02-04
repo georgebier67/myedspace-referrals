@@ -178,22 +178,12 @@ export async function updateHubSpotContact(
 }
 
 // Update referrer's referral status in HubSpot
+// This triggers HubSpot workflow to send email notification
 export async function updateReferrerStatus(
   referrerEmail: string,
-  status: 'qualified' | 'rewarded',
-  referredFriendName?: string
+  status: 'qualified' | 'rewarded'
 ): Promise<{ success: boolean; error?: string }> {
-  const properties: Record<string, string> = {
+  return updateHubSpotContact(referrerEmail, {
     referral_status: status,
-  };
-
-  // Optionally include the friend's name for context
-  if (referredFriendName) {
-    properties.latest_qualified_referral = referredFriendName;
-  }
-
-  // Add timestamp
-  properties.referral_status_updated = new Date().toISOString();
-
-  return updateHubSpotContact(referrerEmail, properties);
+  });
 }

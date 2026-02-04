@@ -63,8 +63,7 @@ export async function POST(request: NextRequest) {
         // Update HubSpot contact property to trigger email workflow
         const hubspotResult = await updateReferrerStatus(
           referral.referrer_email,
-          'qualified',
-          referral.referred_name
+          'qualified'
         );
         if (!hubspotResult.success) {
           console.error('HubSpot update failed:', hubspotResult.error);
