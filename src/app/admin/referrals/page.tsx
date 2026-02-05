@@ -37,6 +37,13 @@ interface Stats {
   disqualified: number;
 }
 
+interface Campaign {
+  id: string;
+  slug: string;
+  name: string;
+  active: boolean;
+}
+
 function LoginForm({ onLogin }: { onLogin: () => void }) {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -169,11 +176,13 @@ export default function AdminDashboard() {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
   const [referrals, setReferrals] = useState<Referral[]>([]);
   const [referrers, setReferrers] = useState<Referrer[]>([]);
+  const [campaigns, setCampaigns] = useState<Campaign[]>([]);
   const [stats, setStats] = useState<Stats | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [filter, setFilter] = useState<string>('all');
   const [search, setSearch] = useState('');
   const [selectedReferrer, setSelectedReferrer] = useState<string | null>(null);
+  const [selectedCampaign, setSelectedCampaign] = useState<string>('');
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [deleteLoading, setDeleteLoading] = useState<string | null>(null);
   const [exportLoading, setExportLoading] = useState<string | null>(null);
@@ -190,19 +199,23 @@ export default function AdminDashboard() {
 
   const fetchData = useCallback(async () => {
     try {
-      const response = await fetch('/api/admin/referrals');
+      const url = selectedCampaign
+        ? `/api/admin/referrals?campaign=${selectedCampaign}`
+        : '/api/admin/referrals';
+      const response = await fetch(url);
       if (response.ok) {
         const data = await response.json();
         setReferrals(data.referrals);
         setReferrers(data.referrers);
         setStats(data.stats);
+        setCampaigns(data.campaigns || []);
       }
     } catch (error) {
       console.error('Failed to fetch data:', error);
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [selectedCampaign]);
 
   useEffect(() => {
     checkAuth();
@@ -347,6 +360,12 @@ export default function AdminDashboard() {
             </p>
           </div>
           <div className="flex gap-2">
+            <a
+              href="/admin/campaigns"
+              className="btn-secondary flex items-center gap-2"
+            >
+              Campaigns
+            </a>
             <button
               onClick={() => handleExport('referrals')}
               disabled={exportLoading !== null}
@@ -433,6 +452,20 @@ export default function AdminDashboard() {
                 className="input-pixel w-full"
               />
             </div>
+            {campaigns.length > 0 && (
+              <select
+                value={selectedCampaign}
+                onChange={(e) => setSelectedCampaign(e.target.value)}
+                className="input-pixel"
+              >
+                <option value="">All Campaigns</option>
+                {campaigns.map((c) => (
+                  <option key={c.id} value={c.id}>
+                    {c.name}
+                  </option>
+                ))}
+              </select>
+            )}
             <select
               value={filter}
               onChange={(e) => setFilter(e.target.value)}

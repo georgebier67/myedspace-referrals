@@ -2,14 +2,32 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getReferrerByCode, createReferral } from '@/lib/data';
 import { submitReferredFriendToHubSpot } from '@/lib/hubspot';
 import { notifyNewReferral } from '@/lib/slack';
+import { getCampaignById } from '@/lib/campaigns';
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { referralCode, name, email, phone, childGrade } = body;
+    const {
+      referralCode,
+      friendName,
+      friendEmail,
+      friendPhone,
+      childGrade,
+      campaignId,
+      customFields,
+      // Legacy support
+      name,
+      email,
+      phone,
+    } = body;
+
+    // Support both old and new field names
+    const actualName = friendName || name;
+    const actualEmail = friendEmail || email;
+    const actualPhone = friendPhone || phone || '';
 
     // Validate input
-    if (!referralCode || !name || !email) {
+    if (!referralCode || !actualName || !actualEmail) {
       return NextResponse.json(
         { error: 'Name and email are required' },
         { status: 400 }
@@ -18,7 +36,7 @@ export async function POST(request: NextRequest) {
 
     // Validate email format
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
+    if (!emailRegex.test(actualEmail)) {
       return NextResponse.json(
         { error: 'Please enter a valid email address' },
         { status: 400 }
@@ -34,21 +52,31 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Use campaign from referrer or provided
+    const effectiveCampaignId = campaignId || referrer.campaign_id;
+
     // Create referral record
     const referral = await createReferral(
       referrer,
-      email,
-      name,
-      phone || '',
-      childGrade || ''
+      actualEmail,
+      actualName,
+      actualPhone,
+      childGrade || '',
+      effectiveCampaignId,
+      customFields || {}
     );
+
+    // Get campaign for HubSpot config
+    const campaign = await getCampaignById(effectiveCampaignId);
 
     // Submit to HubSpot (non-blocking)
     const hubspotResult = await submitReferredFriendToHubSpot(
-      email,
-      name,
-      phone || '',
-      referrer.email
+      actualEmail,
+      actualName,
+      actualPhone,
+      referrer.email,
+      campaign?.hubspot_portal_id || undefined,
+      campaign?.hubspot_form_guid || undefined
     );
 
     if (!hubspotResult.success) {
@@ -56,24 +84,26 @@ export async function POST(request: NextRequest) {
     }
 
     // Send Slack notification (non-blocking)
-    notifyNewReferral(referrer.name, name, email).catch(console.error);
+    notifyNewReferral(referrer.name, actualName, actualEmail).catch(console.error);
 
     // Build redirect URL with pre-filled form data
     const bookingUrl = process.env.BOOKING_URL || 'https://myedspace-booking.vercel.app/book';
     const redirectUrl = new URL(bookingUrl);
-    redirectUrl.searchParams.set('name', name);
-    redirectUrl.searchParams.set('email', email);
-    if (phone) {
-      redirectUrl.searchParams.set('phone', phone);
+    redirectUrl.searchParams.set('name', actualName);
+    redirectUrl.searchParams.set('email', actualEmail);
+    if (actualPhone) {
+      redirectUrl.searchParams.set('phone', actualPhone);
     }
     redirectUrl.searchParams.set('utm_source', 'referral');
     redirectUrl.searchParams.set('utm_medium', 'friend_signup');
-    redirectUrl.searchParams.set('utm_campaign', 'referral_program');
+    redirectUrl.searchParams.set('utm_campaign', campaign?.slug || 'referral_program');
     redirectUrl.searchParams.set('ref', referralCode);
 
     return NextResponse.json({
       success: true,
       referral,
+      bookingUrl: redirectUrl.toString(),
+      // Legacy support
       redirectUrl: redirectUrl.toString(),
       message: 'Thank you for signing up!',
     });

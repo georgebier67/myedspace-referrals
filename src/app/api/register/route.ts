@@ -1,11 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createReferrer, getReferrerByEmail } from '@/lib/data';
 import { submitReferrerToHubSpot } from '@/lib/hubspot';
+import { DEFAULT_CAMPAIGN_ID, getCampaignById } from '@/lib/campaigns';
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { email, name } = body;
+    const { email, name, campaignId, campaignSlug } = body;
 
     // Validate input
     if (!email || !name) {
@@ -24,8 +25,11 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Check if referrer already exists
-    const existingReferrer = await getReferrerByEmail(email);
+    // Use provided campaign ID or default
+    const effectiveCampaignId = campaignId || DEFAULT_CAMPAIGN_ID;
+
+    // Check if referrer already exists for this campaign
+    const existingReferrer = await getReferrerByEmail(email, effectiveCampaignId);
     if (existingReferrer) {
       return NextResponse.json({
         success: true,
@@ -35,14 +39,20 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    // Create new referrer
-    const referrer = await createReferrer(email, name);
+    // Create new referrer for this campaign
+    const referrer = await createReferrer(email, name, effectiveCampaignId, campaignSlug);
+
+    // Get campaign for HubSpot config
+    const campaign = await getCampaignById(effectiveCampaignId);
 
     // Submit to HubSpot (non-blocking - we don't fail if HubSpot fails)
+    // Use campaign-specific HubSpot config if available, otherwise use env vars
     const hubspotResult = await submitReferrerToHubSpot(
       email,
       name,
-      referrer.referral_link
+      referrer.referral_link,
+      campaign?.hubspot_portal_id || undefined,
+      campaign?.hubspot_form_guid || undefined
     );
 
     if (!hubspotResult.success) {

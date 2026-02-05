@@ -1,5 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
 import { Referrer, Referral, ReferralStatus } from './types';
+import { DEFAULT_CAMPAIGN_ID, generateCampaignReferralLink } from './campaigns';
 
 // Get Supabase client
 function getSupabase() {
@@ -20,21 +21,31 @@ export function generateReferralCode(): string {
   return `ref_${timestamp}_${random}`;
 }
 
-// Generate referral link from code
-export function generateReferralLink(code: string): string {
+// Generate referral link from code (legacy - uses default campaign)
+export function generateReferralLink(code: string, campaignSlug?: string): string {
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
-  return `${baseUrl}/refer?ref=${code}`;
+  if (campaignSlug) {
+    return `${baseUrl}/${campaignSlug}/refer?ref=${code}`;
+  }
+  // Legacy support - default campaign
+  return `${baseUrl}/refer-a-friend/refer?ref=${code}`;
 }
 
 // ================== REFERRERS ==================
 
-export async function getReferrers(): Promise<Referrer[]> {
+export async function getReferrers(campaignId?: string): Promise<Referrer[]> {
   const supabase = getSupabase();
 
-  const { data, error } = await supabase
+  let query = supabase
     .from('referrers')
     .select('*')
     .order('created_at', { ascending: false });
+
+  if (campaignId) {
+    query = query.eq('campaign_id', campaignId);
+  }
+
+  const { data, error } = await query;
 
   if (error) {
     console.error('Error fetching referrers:', error);
@@ -47,19 +58,24 @@ export async function getReferrers(): Promise<Referrer[]> {
     email: row.email,
     name: row.name,
     total_referrals: row.total_referrals,
+    campaign_id: row.campaign_id || DEFAULT_CAMPAIGN_ID,
     created_at: row.created_at,
   }));
 }
 
-export async function getReferrerByEmail(email: string): Promise<Referrer | null> {
+export async function getReferrerByEmail(email: string, campaignId?: string): Promise<Referrer | null> {
   const supabase = getSupabase();
 
-  const { data, error } = await supabase
+  let query = supabase
     .from('referrers')
     .select('*')
-    .eq('email', email.toLowerCase())
-    .limit(1)
-    .single();
+    .eq('email', email.toLowerCase());
+
+  if (campaignId) {
+    query = query.eq('campaign_id', campaignId);
+  }
+
+  const { data, error } = await query.limit(1).single();
 
   if (error || !data) {
     return null;
@@ -71,6 +87,7 @@ export async function getReferrerByEmail(email: string): Promise<Referrer | null
     email: data.email,
     name: data.name,
     total_referrals: data.total_referrals,
+    campaign_id: data.campaign_id || DEFAULT_CAMPAIGN_ID,
     created_at: data.created_at,
   };
 }
@@ -95,22 +112,28 @@ export async function getReferrerByCode(code: string): Promise<Referrer | null> 
     email: data.email,
     name: data.name,
     total_referrals: data.total_referrals,
+    campaign_id: data.campaign_id || DEFAULT_CAMPAIGN_ID,
     created_at: data.created_at,
   };
 }
 
-export async function createReferrer(email: string, name: string): Promise<Referrer> {
+export async function createReferrer(
+  email: string,
+  name: string,
+  campaignId: string = DEFAULT_CAMPAIGN_ID,
+  campaignSlug?: string
+): Promise<Referrer> {
   const supabase = getSupabase();
   const normalizedEmail = email.toLowerCase();
 
-  // Check if already exists
-  const existing = await getReferrerByEmail(normalizedEmail);
+  // Check if already exists for this campaign
+  const existing = await getReferrerByEmail(normalizedEmail, campaignId);
   if (existing) {
     return existing;
   }
 
   const code = generateReferralCode();
-  const link = generateReferralLink(code);
+  const link = generateReferralLink(code, campaignSlug);
 
   const { data, error } = await supabase
     .from('referrers')
@@ -120,6 +143,7 @@ export async function createReferrer(email: string, name: string): Promise<Refer
       referral_code: code,
       referral_link: link,
       total_referrals: 0,
+      campaign_id: campaignId,
     })
     .select()
     .single();
@@ -135,6 +159,7 @@ export async function createReferrer(email: string, name: string): Promise<Refer
     email: normalizedEmail,
     name: name,
     total_referrals: 0,
+    campaign_id: campaignId,
     created_at: data.created_at,
   };
 }
@@ -183,13 +208,19 @@ export async function deleteReferrer(email: string): Promise<boolean> {
 
 // ================== REFERRALS ==================
 
-export async function getReferrals(): Promise<Referral[]> {
+export async function getReferrals(campaignId?: string): Promise<Referral[]> {
   const supabase = getSupabase();
 
-  const { data, error } = await supabase
+  let query = supabase
     .from('referrals')
     .select('*')
     .order('created_at', { ascending: false });
+
+  if (campaignId) {
+    query = query.eq('campaign_id', campaignId);
+  }
+
+  const { data, error } = await query;
 
   if (error) {
     console.error('Error fetching referrals:', error);
@@ -210,6 +241,8 @@ export async function getReferrals(): Promise<Referral[]> {
     status: row.status as ReferralStatus,
     reward_issued_date: row.reward_issued_date || null,
     notes: row.notes || '',
+    campaign_id: row.campaign_id || DEFAULT_CAMPAIGN_ID,
+    custom_fields: row.custom_fields || {},
     created_at: row.created_at,
   }));
 }
@@ -219,7 +252,9 @@ export async function createReferral(
   friendEmail: string,
   friendName: string,
   friendPhone: string,
-  childGrade: string
+  childGrade: string,
+  campaignId: string = DEFAULT_CAMPAIGN_ID,
+  customFields: Record<string, string> = {}
 ): Promise<Referral> {
   const supabase = getSupabase();
   const id = `ref_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`;
@@ -235,6 +270,8 @@ export async function createReferral(
       referred_phone: friendPhone,
       referred_child_grade: childGrade,
       status: 'pending',
+      campaign_id: campaignId,
+      custom_fields: customFields,
     })
     .select()
     .single();
@@ -261,6 +298,8 @@ export async function createReferral(
     status: 'pending',
     reward_issued_date: null,
     notes: '',
+    campaign_id: campaignId,
+    custom_fields: customFields,
     created_at: data.created_at,
   };
 }
@@ -303,14 +342,20 @@ export async function updateReferralStatus(
   return getReferralById(referralId);
 }
 
-export async function getReferralsByReferrer(email: string): Promise<Referral[]> {
+export async function getReferralsByReferrer(email: string, campaignId?: string): Promise<Referral[]> {
   const supabase = getSupabase();
 
-  const { data, error } = await supabase
+  let query = supabase
     .from('referrals')
     .select('*')
     .eq('referrer_email', email.toLowerCase())
     .order('created_at', { ascending: false });
+
+  if (campaignId) {
+    query = query.eq('campaign_id', campaignId);
+  }
+
+  const { data, error } = await query;
 
   if (error) {
     console.error('Error fetching referrals by referrer:', error);
@@ -331,6 +376,8 @@ export async function getReferralsByReferrer(email: string): Promise<Referral[]>
     status: row.status as ReferralStatus,
     reward_issued_date: row.reward_issued_date || null,
     notes: row.notes || '',
+    campaign_id: row.campaign_id || DEFAULT_CAMPAIGN_ID,
+    custom_fields: row.custom_fields || {},
     created_at: row.created_at,
   }));
 }
@@ -363,42 +410,33 @@ export async function getReferralById(id: string): Promise<Referral | null> {
     status: data.status as ReferralStatus,
     reward_issued_date: data.reward_issued_date || null,
     notes: data.notes || '',
+    campaign_id: data.campaign_id || DEFAULT_CAMPAIGN_ID,
+    custom_fields: data.custom_fields || {},
     created_at: data.created_at,
   };
 }
 
 // Get referral statistics
-export async function getReferralStats() {
+export async function getReferralStats(campaignId?: string) {
   const supabase = getSupabase();
 
-  const { count: total } = await supabase
-    .from('referrals')
-    .select('*', { count: 'exact', head: true });
+  const baseQuery = () => {
+    let q = supabase.from('referrals').select('*', { count: 'exact', head: true });
+    if (campaignId) q = q.eq('campaign_id', campaignId);
+    return q;
+  };
 
-  const { count: pending } = await supabase
-    .from('referrals')
-    .select('*', { count: 'exact', head: true })
-    .eq('status', 'pending');
+  const { count: total } = await baseQuery();
 
-  const { count: purchased } = await supabase
-    .from('referrals')
-    .select('*', { count: 'exact', head: true })
-    .eq('status', 'purchased');
+  const { count: pending } = await baseQuery().eq('status', 'pending');
 
-  const { count: qualified } = await supabase
-    .from('referrals')
-    .select('*', { count: 'exact', head: true })
-    .eq('status', 'qualified');
+  const { count: purchased } = await baseQuery().eq('status', 'purchased');
 
-  const { count: rewarded } = await supabase
-    .from('referrals')
-    .select('*', { count: 'exact', head: true })
-    .eq('status', 'rewarded');
+  const { count: qualified } = await baseQuery().eq('status', 'qualified');
 
-  const { count: disqualified } = await supabase
-    .from('referrals')
-    .select('*', { count: 'exact', head: true })
-    .eq('status', 'disqualified');
+  const { count: rewarded } = await baseQuery().eq('status', 'rewarded');
+
+  const { count: disqualified } = await baseQuery().eq('status', 'disqualified');
 
   return {
     total: total || 0,

@@ -13,14 +13,16 @@ interface HubSpotFormSubmission {
 }
 
 export async function submitToHubSpotForm(
-  fields: HubSpotFormSubmission
+  fields: HubSpotFormSubmission,
+  overridePortalId?: string,
+  overrideFormGuid?: string
 ): Promise<{ success: boolean; error?: string }> {
-  const portalId = process.env.HUBSPOT_PORTAL_ID;
-  const formGuid = process.env.HUBSPOT_FORM_GUID;
+  const portalId = overridePortalId || process.env.HUBSPOT_PORTAL_ID;
+  const formGuid = overrideFormGuid || process.env.HUBSPOT_FORM_GUID;
 
   if (!portalId || !formGuid) {
-    console.error('HubSpot configuration missing');
-    return { success: false, error: 'HubSpot configuration missing' };
+    console.log('HubSpot configuration not provided, skipping form submission');
+    return { success: true }; // Return success to not block the flow
   }
 
   const url = `https://api.hsforms.com/submissions/v3/integration/submit/${portalId}/${formGuid}`;
@@ -67,7 +69,9 @@ export async function submitToHubSpotForm(
 export async function submitReferrerToHubSpot(
   email: string,
   name: string,
-  referralLink: string
+  referralLink: string,
+  portalId?: string,
+  formGuid?: string
 ): Promise<{ success: boolean; error?: string }> {
   const nameParts = name.split(' ');
   const firstname = nameParts[0] || '';
@@ -78,7 +82,7 @@ export async function submitReferrerToHubSpot(
     firstname,
     lastname,
     referral_link: referralLink,
-  });
+  }, portalId, formGuid);
 }
 
 // Submit referred friend to HubSpot
@@ -86,7 +90,9 @@ export async function submitReferredFriendToHubSpot(
   email: string,
   name: string,
   phone: string,
-  referrerEmail: string
+  referrerEmail: string,
+  portalId?: string,
+  formGuid?: string
 ): Promise<{ success: boolean; error?: string }> {
   const nameParts = name.split(' ');
   const firstname = nameParts[0] || '';
@@ -98,7 +104,7 @@ export async function submitReferredFriendToHubSpot(
     lastname,
     phone,
     referred_by: referrerEmail,
-  });
+  }, portalId, formGuid);
 }
 
 // ================== CONTACTS API (requires Private App token) ==================
