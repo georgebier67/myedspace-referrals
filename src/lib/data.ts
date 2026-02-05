@@ -26,63 +26,6 @@ export function generateReferralLink(code: string): string {
   return `${baseUrl}/refer?ref=${code}`;
 }
 
-// Initialize database tables
-export async function initDatabase() {
-  const supabase = getSupabase();
-
-  try {
-    // Create referrers table
-    const { error: referrersError } = await supabase.rpc('exec_sql', {
-      sql: `
-        CREATE TABLE IF NOT EXISTS referrers (
-          id SERIAL PRIMARY KEY,
-          email VARCHAR(255) UNIQUE NOT NULL,
-          name VARCHAR(255) NOT NULL,
-          referral_code VARCHAR(100) UNIQUE NOT NULL,
-          referral_link TEXT NOT NULL,
-          total_referrals INTEGER DEFAULT 0,
-          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        )
-      `
-    });
-
-    if (referrersError) {
-      console.error('Error creating referrers table:', referrersError);
-    }
-
-    // Create referrals table
-    const { error: referralsError } = await supabase.rpc('exec_sql', {
-      sql: `
-        CREATE TABLE IF NOT EXISTS referrals (
-          id VARCHAR(100) PRIMARY KEY,
-          referrer_email VARCHAR(255) NOT NULL,
-          referrer_name VARCHAR(255) NOT NULL,
-          referred_email VARCHAR(255) NOT NULL,
-          referred_name VARCHAR(255) NOT NULL,
-          referred_phone VARCHAR(50),
-          referred_child_grade VARCHAR(20),
-          signup_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-          purchase_date TIMESTAMP,
-          reward_eligible_date TIMESTAMP,
-          status VARCHAR(50) DEFAULT 'pending',
-          reward_issued_date TIMESTAMP,
-          notes TEXT,
-          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        )
-      `
-    });
-
-    if (referralsError) {
-      console.error('Error creating referrals table:', referralsError);
-    }
-
-    return true;
-  } catch (error) {
-    console.error('Failed to initialize database:', error);
-    return false;
-  }
-}
-
 // ================== REFERRERS ==================
 
 export async function getReferrers(): Promise<Referrer[]> {

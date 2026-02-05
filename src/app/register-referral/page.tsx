@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { PixelLoader, SuccessAnimation } from '@/components/PixelLoader';
 import { Confetti } from '@/components/Confetti';
 import Link from 'next/link';

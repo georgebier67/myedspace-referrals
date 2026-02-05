@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useRef } from 'react';
 
 interface Particle {
   id: number;
@@ -22,34 +22,40 @@ const BRAND_COLORS = [
   '#101626', // Dark
 ];
 
-export function Confetti({ duration = 4000 }: { duration?: number }) {
-  const [particles, setParticles] = useState<Particle[]>([]);
-  const [isActive, setIsActive] = useState(true);
+function createParticle(id: number): Particle {
+  const shapes: ('square' | 'rectangle' | 'line')[] = ['square', 'rectangle', 'line'];
+  return {
+    id,
+    x: Math.random() * 100,
+    y: -10 - Math.random() * 20,
+    size: 8 + Math.random() * 16,
+    color: BRAND_COLORS[Math.floor(Math.random() * BRAND_COLORS.length)],
+    velocityX: (Math.random() - 0.5) * 1.5,
+    velocityY: 0.8 + Math.random() * 1.5,
+    rotation: Math.random() * 360,
+    rotationSpeed: (Math.random() - 0.5) * 15,
+    shape: shapes[Math.floor(Math.random() * shapes.length)],
+  };
+}
 
-  const createParticle = useCallback((id: number): Particle => {
-    const shapes: ('square' | 'rectangle' | 'line')[] = ['square', 'rectangle', 'line'];
-    return {
-      id,
-      x: Math.random() * 100,
-      y: -10 - Math.random() * 20,
-      size: 8 + Math.random() * 16,
-      color: BRAND_COLORS[Math.floor(Math.random() * BRAND_COLORS.length)],
-      velocityX: (Math.random() - 0.5) * 1.5,
-      velocityY: 0.8 + Math.random() * 1.5,
-      rotation: Math.random() * 360,
-      rotationSpeed: (Math.random() - 0.5) * 15,
-      shape: shapes[Math.floor(Math.random() * shapes.length)],
-    };
-  }, []);
+function createInitialParticles(): Particle[] {
+  const particles: Particle[] = [];
+  for (let i = 0; i < 60; i++) {
+    particles.push(createParticle(i));
+  }
+  return particles;
+}
+
+export function Confetti({ duration = 4000 }: { duration?: number }) {
+  const [particles, setParticles] = useState<Particle[]>(createInitialParticles);
+  const [isActive, setIsActive] = useState(true);
+  const isActiveRef = useRef(true);
 
   useEffect(() => {
-    // Create initial burst
-    const initialParticles: Particle[] = [];
-    for (let i = 0; i < 60; i++) {
-      initialParticles.push(createParticle(i));
-    }
-    setParticles(initialParticles);
+    isActiveRef.current = isActive;
+  }, [isActive]);
 
+  useEffect(() => {
     // Animation loop
     let animationId: number;
     let lastTime = performance.now();
@@ -70,7 +76,7 @@ export function Confetti({ duration = 4000 }: { duration?: number }) {
           .filter((p) => p.y < 120)
       );
 
-      if (isActive) {
+      if (isActiveRef.current) {
         animationId = requestAnimationFrame(animate);
       }
     };
@@ -86,7 +92,7 @@ export function Confetti({ duration = 4000 }: { duration?: number }) {
       cancelAnimationFrame(animationId);
       clearTimeout(timeout);
     };
-  }, [createParticle, duration, isActive]);
+  }, [duration]);
 
   if (!isActive && particles.length === 0) return null;
 
@@ -134,42 +140,5 @@ export function Confetti({ duration = 4000 }: { duration?: number }) {
         </div>
       ))}
     </div>
-  );
-}
-
-// Celebration text that animates in
-export function CelebrationBanner({ show }: { show: boolean }) {
-  const [visible, setVisible] = useState(false);
-
-  useEffect(() => {
-    if (show) {
-      const timer = setTimeout(() => setVisible(true), 100);
-      return () => clearTimeout(timer);
-    }
-  }, [show]);
-
-  if (!show) return null;
-
-  return (
-    <div
-      className={`fixed top-8 left-1/2 -translate-x-1/2 z-50 transition-all duration-500 ${
-        visible ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-8'
-      }`}
-    >
-      <div className="bg-[#b1db00] border-4 border-[#101626] px-8 py-4 shadow-[6px_6px_0_0_#101626]">
-        <p className="text-[#101626] font-black text-xl uppercase tracking-wider">
-          You&apos;re Ready to Earn!
-        </p>
-      </div>
-    </div>
-  );
-}
-
-// Pulsing reward highlight
-export function RewardHighlight({ children }: { children: React.ReactNode }) {
-  return (
-    <span className="inline-block animate-pulse-reward bg-[#b1db00] px-2 py-1 border-2 border-[#101626] font-black">
-      {children}
-    </span>
   );
 }
