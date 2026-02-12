@@ -1,5 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
-import { Campaign, CampaignCopy, StandardFormFields, CustomFormField } from './types';
+import { Campaign, CampaignCopy, StandardFormFields, CustomFormField, PhoneFormat } from './types';
 
 // Default campaign ID for backwards compatibility
 export const DEFAULT_CAMPAIGN_ID = '00000000-0000-0000-0000-000000000001';
@@ -16,6 +16,15 @@ function getSupabase() {
   return createClient(url, key);
 }
 
+// Phone format configurations
+export const PHONE_FORMATS: Record<PhoneFormat, { placeholder: string; label: string }> = {
+  US: { placeholder: '+1 (555) 123-4567', label: 'United States (+1)' },
+  UK: { placeholder: '+44 7911 123456', label: 'United Kingdom (+44)' },
+  AU: { placeholder: '+61 412 345 678', label: 'Australia (+61)' },
+  EU: { placeholder: '+49 151 12345678', label: 'Europe (Generic)' },
+  none: { placeholder: 'Enter phone number', label: 'No format' },
+};
+
 // Default copy for new campaigns
 export const defaultCampaignCopy: CampaignCopy = {
   referrer_page_title: 'Refer a Friend',
@@ -28,6 +37,7 @@ export const defaultCampaignCopy: CampaignCopy = {
   friend_form_heading: 'Sign Up for Your Free Trial',
   friend_success_title: 'Thanks for signing up!',
   friend_success_message: "We'll be in touch soon to get you started.",
+  friend_submit_button: 'Sign Up & Book Session',
   reward_description: 'Get rewarded for each friend who signs up!',
   terms_content: 'Standard terms and conditions apply.',
 };
@@ -133,6 +143,7 @@ export async function createCampaign(campaign: {
       copy: { ...defaultCampaignCopy, ...campaign.copy },
       standard_fields: { ...defaultStandardFields, ...campaign.standard_fields },
       custom_fields: campaign.custom_fields || [],
+      phone_format: 'US',
     })
     .select()
     .single();
@@ -158,6 +169,7 @@ export async function updateCampaign(
     copy: CampaignCopy;
     standard_fields: StandardFormFields;
     custom_fields: CustomFormField[];
+    phone_format: PhoneFormat;
   }>
 ): Promise<Campaign | null> {
   const supabase = getSupabase();
@@ -176,6 +188,7 @@ export async function updateCampaign(
   if (updates.copy !== undefined) updateData.copy = updates.copy;
   if (updates.standard_fields !== undefined) updateData.standard_fields = updates.standard_fields;
   if (updates.custom_fields !== undefined) updateData.custom_fields = updates.custom_fields;
+  if (updates.phone_format !== undefined) updateData.phone_format = updates.phone_format;
 
   const { data, error } = await supabase
     .from('campaigns')
@@ -266,6 +279,12 @@ export async function getCampaignStats(campaignId: string) {
 
 // Helper function to map database row to Campaign type
 function mapCampaignFromDb(row: Record<string, unknown>): Campaign {
+  // Ensure copy has all required fields with defaults
+  const copy = {
+    ...defaultCampaignCopy,
+    ...(row.copy as Partial<CampaignCopy>),
+  };
+
   return {
     id: row.id as string,
     slug: row.slug as string,
@@ -275,9 +294,10 @@ function mapCampaignFromDb(row: Record<string, unknown>): Campaign {
     reward_type: row.reward_type as string,
     hubspot_portal_id: row.hubspot_portal_id as string | null,
     hubspot_form_guid: row.hubspot_form_guid as string | null,
-    copy: row.copy as CampaignCopy,
+    copy,
     standard_fields: row.standard_fields as StandardFormFields,
     custom_fields: row.custom_fields as CustomFormField[],
+    phone_format: (row.phone_format as PhoneFormat) || 'US',
     created_at: row.created_at as string,
     updated_at: row.updated_at as string,
   };

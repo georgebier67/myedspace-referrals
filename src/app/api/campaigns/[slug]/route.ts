@@ -28,6 +28,7 @@ export async function GET(
         copy: campaign.copy,
         standard_fields: campaign.standard_fields,
         custom_fields: campaign.custom_fields,
+        phone_format: campaign.phone_format,
       },
     });
   } catch (error) {

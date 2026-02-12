@@ -14,6 +14,9 @@ export interface StandardFormFields {
   child_grade: boolean;
 }
 
+// Phone format options
+export type PhoneFormat = 'US' | 'UK' | 'AU' | 'EU' | 'none';
+
 // Campaign copy configuration
 export interface CampaignCopy {
   // Referrer registration page
@@ -28,6 +31,7 @@ export interface CampaignCopy {
   friend_form_heading: string;
   friend_success_title: string;
   friend_success_message: string;
+  friend_submit_button: string;
   // Reward info
   reward_description: string;
   // Terms
@@ -47,6 +51,7 @@ export interface Campaign {
   copy: CampaignCopy;
   standard_fields: StandardFormFields;
   custom_fields: CustomFormField[];
+  phone_format: PhoneFormat;
   created_at: string;
   updated_at: string;
 }

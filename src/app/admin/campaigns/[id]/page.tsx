@@ -29,9 +29,20 @@ interface CampaignCopy {
   friend_form_heading: string;
   friend_success_title: string;
   friend_success_message: string;
+  friend_submit_button: string;
   reward_description: string;
   terms_content: string;
 }
+
+type PhoneFormat = 'US' | 'UK' | 'AU' | 'EU' | 'none';
+
+const PHONE_FORMATS: Record<PhoneFormat, { placeholder: string; label: string }> = {
+  US: { placeholder: '+1 (555) 123-4567', label: 'United States (+1)' },
+  UK: { placeholder: '+44 7911 123456', label: 'United Kingdom (+44)' },
+  AU: { placeholder: '+61 412 345 678', label: 'Australia (+61)' },
+  EU: { placeholder: '+49 151 12345678', label: 'Europe (Generic)' },
+  none: { placeholder: 'Enter phone number', label: 'No format' },
+};
 
 interface Campaign {
   id: string;
@@ -45,6 +56,7 @@ interface Campaign {
   copy: CampaignCopy;
   standard_fields: StandardFormFields;
   custom_fields: CustomFormField[];
+  phone_format: PhoneFormat;
   created_at: string;
   updated_at: string;
 }
@@ -398,6 +410,26 @@ export default function CampaignEditorPage() {
             </div>
 
             <div>
+              <label className="block text-sm font-bold text-[#101626] mb-1 uppercase">
+                Phone Number Format
+              </label>
+              <select
+                value={formData.phone_format || 'US'}
+                onChange={(e) => updateFormData({ phone_format: e.target.value as PhoneFormat })}
+                className="input-pixel w-full"
+              >
+                {Object.entries(PHONE_FORMATS).map(([key, { label }]) => (
+                  <option key={key} value={key}>
+                    {label}
+                  </option>
+                ))}
+              </select>
+              <p className="text-sm text-[#101626]/60 mt-1">
+                Sets the placeholder format for phone input on friend signup form
+              </p>
+            </div>
+
+            <div>
               <label className="flex items-center gap-3 cursor-pointer">
                 <input
                   type="checkbox"
@@ -529,6 +561,19 @@ export default function CampaignEditorPage() {
                     className="input-pixel w-full"
                     rows={2}
                   />
+                </div>
+                <div>
+                  <label className="block text-sm font-bold text-[#101626] mb-1">Submit Button Text</label>
+                  <input
+                    type="text"
+                    value={formData.copy?.friend_submit_button || ''}
+                    onChange={(e) => updateCopy('friend_submit_button', e.target.value)}
+                    className="input-pixel w-full"
+                    placeholder="Sign Up & Book Session"
+                  />
+                  <p className="text-sm text-[#101626]/60 mt-1">
+                    Text displayed on the form submit button
+                  </p>
                 </div>
               </div>
             </div>

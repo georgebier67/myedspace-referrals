@@ -4,6 +4,16 @@ import { useState, useEffect } from 'react';
 import { useParams, useSearchParams, useRouter } from 'next/navigation';
 import { PixelLoader } from '@/components/PixelLoader';
 
+type PhoneFormat = 'US' | 'UK' | 'AU' | 'EU' | 'none';
+
+const PHONE_FORMATS: Record<PhoneFormat, { placeholder: string; label: string }> = {
+  US: { placeholder: '+1 (555) 123-4567', label: 'United States (+1)' },
+  UK: { placeholder: '+44 7911 123456', label: 'United Kingdom (+44)' },
+  AU: { placeholder: '+61 412 345 678', label: 'Australia (+61)' },
+  EU: { placeholder: '+49 151 12345678', label: 'Europe (Generic)' },
+  none: { placeholder: 'Enter phone number', label: 'No format' },
+};
+
 interface Campaign {
   id: string;
   slug: string;
@@ -15,6 +25,7 @@ interface Campaign {
     friend_form_heading: string;
     friend_success_title: string;
     friend_success_message: string;
+    friend_submit_button: string;
   };
   standard_fields: {
     phone: boolean;
@@ -28,6 +39,7 @@ interface Campaign {
     options?: string[];
     placeholder?: string;
   }>;
+  phone_format: PhoneFormat;
 }
 
 interface Referrer {
@@ -270,7 +282,7 @@ export default function CampaignReferPage() {
                   value={friendPhone}
                   onChange={(e) => setFriendPhone(e.target.value)}
                   className="input-pixel w-full"
-                  placeholder="+1 (555) 123-4567"
+                  placeholder={PHONE_FORMATS[campaign.phone_format || 'US'].placeholder}
                 />
               </div>
             )}
@@ -365,7 +377,7 @@ export default function CampaignReferPage() {
               className="btn-primary w-full"
               disabled={isLoading}
             >
-              {isLoading ? 'Signing Up...' : 'Sign Up & Book Session'}
+              {isLoading ? 'Signing Up...' : (campaign.copy.friend_submit_button || 'Sign Up & Book Session')}
             </button>
           </form>
 
