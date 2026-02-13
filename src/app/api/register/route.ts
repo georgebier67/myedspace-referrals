@@ -40,7 +40,39 @@ export async function POST(request: NextRequest) {
     }
 
     // Create new referrer for this campaign
-    const referrer = await createReferrer(email, name, effectiveCampaignId, campaignSlug);
+    let referrer;
+    try {
+      referrer = await createReferrer(email, name, effectiveCampaignId, campaignSlug);
+    } catch (createError) {
+      // If creation fails, it might be a database constraint error
+      // Try to fetch existing referrer (without campaign filter to find any existing)
+      console.error('Create referrer error:', createError);
+
+      // First try with campaign ID
+      const existingForCampaign = await getReferrerByEmail(email, effectiveCampaignId);
+      if (existingForCampaign) {
+        return NextResponse.json({
+          success: true,
+          referrer: existingForCampaign,
+          isExisting: true,
+          message: 'Welcome back! Here is your existing referral link.',
+        });
+      }
+
+      // Try without campaign ID to find any existing referrer
+      const existingAny = await getReferrerByEmail(email);
+      if (existingAny) {
+        return NextResponse.json({
+          success: true,
+          referrer: existingAny,
+          isExisting: true,
+          message: 'Welcome back! Here is your existing referral link.',
+        });
+      }
+
+      // If we still can't find anything, re-throw the error
+      throw createError;
+    }
 
     // Get campaign for HubSpot config
     const campaign = await getCampaignById(effectiveCampaignId);

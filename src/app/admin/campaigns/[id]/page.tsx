@@ -57,6 +57,7 @@ interface Campaign {
   standard_fields: StandardFormFields;
   custom_fields: CustomFormField[];
   phone_format: PhoneFormat;
+  booking_url: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -426,6 +427,22 @@ export default function CampaignEditorPage() {
               </select>
               <p className="text-sm text-[#101626]/60 mt-1">
                 Sets the placeholder format for phone input on friend signup form
+              </p>
+            </div>
+
+            <div>
+              <label className="block text-sm font-bold text-[#101626] mb-1 uppercase">
+                Redirect URL after Friend Signup
+              </label>
+              <input
+                type="url"
+                value={formData.booking_url || ''}
+                onChange={(e) => updateFormData({ booking_url: e.target.value || null })}
+                className="input-pixel w-full"
+                placeholder="https://exams.myedspace.co.uk/"
+              />
+              <p className="text-sm text-[#101626]/60 mt-1">
+                Where friends are redirected after signup. Leave blank to use default booking page.
               </p>
             </div>
 

@@ -144,6 +144,7 @@ export async function createCampaign(campaign: {
       standard_fields: { ...defaultStandardFields, ...campaign.standard_fields },
       custom_fields: campaign.custom_fields || [],
       phone_format: 'US',
+      booking_url: null,
     })
     .select()
     .single();
@@ -170,6 +171,7 @@ export async function updateCampaign(
     standard_fields: StandardFormFields;
     custom_fields: CustomFormField[];
     phone_format: PhoneFormat;
+    booking_url: string | null;
   }>
 ): Promise<Campaign | null> {
   const supabase = getSupabase();
@@ -189,6 +191,7 @@ export async function updateCampaign(
   if (updates.standard_fields !== undefined) updateData.standard_fields = updates.standard_fields;
   if (updates.custom_fields !== undefined) updateData.custom_fields = updates.custom_fields;
   if (updates.phone_format !== undefined) updateData.phone_format = updates.phone_format;
+  if (updates.booking_url !== undefined) updateData.booking_url = updates.booking_url;
 
   const { data, error } = await supabase
     .from('campaigns')
@@ -298,6 +301,7 @@ function mapCampaignFromDb(row: Record<string, unknown>): Campaign {
     standard_fields: row.standard_fields as StandardFormFields,
     custom_fields: row.custom_fields as CustomFormField[],
     phone_format: (row.phone_format as PhoneFormat) || 'US',
+    booking_url: row.booking_url as string | null,
     created_at: row.created_at as string,
     updated_at: row.updated_at as string,
   };

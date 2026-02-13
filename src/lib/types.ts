@@ -52,6 +52,7 @@ export interface Campaign {
   standard_fields: StandardFormFields;
   custom_fields: CustomFormField[];
   phone_format: PhoneFormat;
+  booking_url: string | null;
   created_at: string;
   updated_at: string;
 }

@@ -87,7 +87,8 @@ export async function POST(request: NextRequest) {
     notifyNewReferral(referrer.name, actualName, actualEmail).catch(console.error);
 
     // Build redirect URL with pre-filled form data
-    const bookingUrl = process.env.BOOKING_URL || 'https://myedspace-booking.vercel.app/book';
+    // Use campaign-specific URL if set, otherwise fall back to env var or default
+    const bookingUrl = campaign?.booking_url || process.env.BOOKING_URL || 'https://myedspace-booking.vercel.app/book';
     const redirectUrl = new URL(bookingUrl);
     redirectUrl.searchParams.set('name', actualName);
     redirectUrl.searchParams.set('email', actualEmail);
