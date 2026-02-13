@@ -241,8 +241,32 @@ export default function CampaignRegisterPage() {
               {copied ? '✓ Copied!' : 'Copy Link'}
             </button>
 
+            {/* How It Works Section */}
+            <div className="mt-6 pt-6 border-t-3 border-[#101626] text-left">
+              <h3 className="font-bold text-[#101626] uppercase mb-4 text-center">
+                How It Works
+              </h3>
+              <div className="space-y-3">
+                <div className="flex items-center gap-3">
+                  <span className="w-6 h-6 bg-[#3533ff] text-white text-sm font-bold flex items-center justify-center flex-shrink-0">1</span>
+                  <span className="text-[#101626]">Share your link with friends</span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <span className="w-6 h-6 bg-[#3533ff] text-white text-sm font-bold flex items-center justify-center flex-shrink-0">2</span>
+                  <span className="text-[#101626]">They sign up through your link</span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <span className="w-6 h-6 bg-[#3533ff] text-white text-sm font-bold flex items-center justify-center flex-shrink-0">3</span>
+                  <span className="text-[#101626]">
+                    After 30 days, you get a <span className="bg-[#c8fb00] px-1 font-bold">{campaign.reward_amount}</span> {campaign.reward_type}!
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* Share Buttons */}
             <div className="mt-6 pt-6 border-t-3 border-[#101626]">
-              <p className="text-sm text-[#101626] mb-4">
+              <p className="text-sm text-[#101626] mb-4 text-center">
                 Share via:
               </p>
               <div className="flex justify-center gap-4">
@@ -262,6 +286,13 @@ export default function CampaignRegisterPage() {
                 </a>
               </div>
             </div>
+
+            {/* Terms Link */}
+            <p className="text-xs text-[#101626]/60 mt-4 text-center">
+              <a href={`/${campaignSlug}/terms`} className="text-[#3533ff] hover:underline">
+                View Terms & Conditions
+              </a>
+            </p>
           </div>
         )}
       </div>
