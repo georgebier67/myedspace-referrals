@@ -66,24 +66,24 @@ export async function POST(request: NextRequest) {
       customFields || {}
     );
 
-    // Get campaign for HubSpot config
+    // Get campaign for HubSpot config and booking URL
     const campaign = await getCampaignById(effectiveCampaignId);
 
-    // Submit to HubSpot (non-blocking)
-    const hubspotResult = await submitReferredFriendToHubSpot(
+    // Submit to HubSpot (truly non-blocking - fire and forget)
+    submitReferredFriendToHubSpot(
       actualEmail,
       actualName,
       actualPhone,
       referrer.email,
       campaign?.hubspot_portal_id || undefined,
       campaign?.hubspot_form_guid || undefined
-    );
+    ).then(result => {
+      if (!result.success) {
+        console.error('HubSpot submission failed:', result.error);
+      }
+    }).catch(console.error);
 
-    if (!hubspotResult.success) {
-      console.error('HubSpot submission failed:', hubspotResult.error);
-    }
-
-    // Send Slack notification (non-blocking)
+    // Send Slack notification (non-blocking - fire and forget)
     notifyNewReferral(referrer.name, actualName, actualEmail).catch(console.error);
 
     // Build redirect URL with pre-filled form data
