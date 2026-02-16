@@ -8,7 +8,7 @@ interface HubSpotFormSubmission {
   lastname?: string;
   phone?: string;
   referral_link?: string;
-  referred_by?: string;
+  referrers_email?: string;
   [key: string]: string | undefined;
 }
 
@@ -103,7 +103,7 @@ export async function submitReferredFriendToHubSpot(
     firstname,
     lastname,
     phone,
-    referred_by: referrerEmail,
+    referrers_email: referrerEmail,
   }, portalId, formGuid);
 }
 
