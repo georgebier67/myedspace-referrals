@@ -53,6 +53,7 @@ interface Campaign {
   reward_type: string;
   hubspot_portal_id: string | null;
   hubspot_form_guid: string | null;
+  hubspot_friend_form_guid: string | null;
   copy: CampaignCopy;
   standard_fields: StandardFormFields;
   custom_fields: CustomFormField[];
@@ -792,7 +793,7 @@ export default function CampaignEditorPage() {
 
             <div>
               <label className="block text-sm font-bold text-[#101626] mb-1 uppercase">
-                HubSpot Form GUID
+                Referrer Form GUID
               </label>
               <input
                 type="text"
@@ -801,6 +802,25 @@ export default function CampaignEditorPage() {
                 className="input-pixel w-full"
                 placeholder="e.g., abc123de-f456-..."
               />
+              <p className="text-sm text-[#101626]/60 mt-1">
+                Form used when a referrer registers
+              </p>
+            </div>
+
+            <div>
+              <label className="block text-sm font-bold text-[#101626] mb-1 uppercase">
+                Friend Signup Form GUID
+              </label>
+              <input
+                type="text"
+                value={formData.hubspot_friend_form_guid || ''}
+                onChange={(e) => updateFormData({ hubspot_friend_form_guid: e.target.value || null })}
+                className="input-pixel w-full"
+                placeholder="e.g., abc123de-f456-..."
+              />
+              <p className="text-sm text-[#101626]/60 mt-1">
+                Separate form for referred friends — used for follow-up comms
+              </p>
             </div>
           </div>
         )}

@@ -76,7 +76,7 @@ export async function POST(request: NextRequest) {
       actualPhone,
       referrer.email,
       campaign?.hubspot_portal_id || undefined,
-      campaign?.hubspot_form_guid || undefined
+      campaign?.hubspot_friend_form_guid || campaign?.hubspot_form_guid || undefined
     ).then(result => {
       if (!result.success) {
         console.error('HubSpot submission failed:', result.error);

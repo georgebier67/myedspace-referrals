@@ -140,6 +140,7 @@ export async function createCampaign(campaign: {
       reward_type: campaign.reward_type,
       hubspot_portal_id: campaign.hubspot_portal_id || null,
       hubspot_form_guid: campaign.hubspot_form_guid || null,
+      hubspot_friend_form_guid: null,
       copy: { ...defaultCampaignCopy, ...campaign.copy },
       standard_fields: { ...defaultStandardFields, ...campaign.standard_fields },
       custom_fields: campaign.custom_fields || [],
@@ -167,6 +168,7 @@ export async function updateCampaign(
     reward_type: string;
     hubspot_portal_id: string | null;
     hubspot_form_guid: string | null;
+    hubspot_friend_form_guid: string | null;
     copy: CampaignCopy;
     standard_fields: StandardFormFields;
     custom_fields: CustomFormField[];
@@ -187,6 +189,7 @@ export async function updateCampaign(
   if (updates.reward_type !== undefined) updateData.reward_type = updates.reward_type;
   if (updates.hubspot_portal_id !== undefined) updateData.hubspot_portal_id = updates.hubspot_portal_id;
   if (updates.hubspot_form_guid !== undefined) updateData.hubspot_form_guid = updates.hubspot_form_guid;
+  if (updates.hubspot_friend_form_guid !== undefined) updateData.hubspot_friend_form_guid = updates.hubspot_friend_form_guid;
   if (updates.copy !== undefined) updateData.copy = updates.copy;
   if (updates.standard_fields !== undefined) updateData.standard_fields = updates.standard_fields;
   if (updates.custom_fields !== undefined) updateData.custom_fields = updates.custom_fields;
@@ -297,6 +300,7 @@ function mapCampaignFromDb(row: Record<string, unknown>): Campaign {
     reward_type: row.reward_type as string,
     hubspot_portal_id: row.hubspot_portal_id as string | null,
     hubspot_form_guid: row.hubspot_form_guid as string | null,
+    hubspot_friend_form_guid: row.hubspot_friend_form_guid as string | null,
     copy,
     standard_fields: row.standard_fields as StandardFormFields,
     custom_fields: row.custom_fields as CustomFormField[],

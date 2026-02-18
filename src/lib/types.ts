@@ -48,6 +48,7 @@ export interface Campaign {
   reward_type: string;
   hubspot_portal_id: string | null;
   hubspot_form_guid: string | null;
+  hubspot_friend_form_guid: string | null;
   copy: CampaignCopy;
   standard_fields: StandardFormFields;
   custom_fields: CustomFormField[];
